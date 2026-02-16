@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * <character encoding>
  *   Cyrillic (UTF-8 with signature) - Codepage 65001
  * </character encoding>
@@ -26,7 +26,6 @@
 #include "CEcoBRE1RegEx.h"
 #include "IEcoRegEx1Builder.h"
 
-extern int16_t ECOCALLMETHOD createCEcoBRE1RegEx_0E0B7D40(CEcoBRE1RegEx_0E0B7D40Ptr_t, IEcoUnknownPtr_t, IEcoUnknownPtr_t, IEcoRegEx1Ptr_t*);
 extern CEcoBRE1RegEx_0E0B7D40 g_xCEcoBRE1RegEx_0E0B7D40;
 
 /*
@@ -115,7 +114,7 @@ static uint32_t ECOCALLMETHOD CEcoBRE1Builder_0E0B7D40_Release(/* in */ IEcoRegE
     return pCMe->m_cRef;
 }
 
-/* Âñïîìîãàòåëüíàÿ ôóíêöèÿ äëÿ âûäåëåíèÿ è èíèöèàëèçàöèè äàííûõ óçëà */
+/* Ð’ÑÐ¿Ð¾Ð¼Ð¾Ð³Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð°Ñ Ñ„ÑƒÐ½ÐºÑ†Ð¸Ñ Ð´Ð»Ñ Ð²Ñ‹Ð´ÐµÐ»ÐµÐ½Ð¸Ñ Ð¸ Ð¸Ð½Ð¸Ñ†Ð¸Ð°Ð»Ð¸Ð·Ð°Ñ†Ð¸Ð¸ Ð´Ð°Ð½Ð½Ñ‹Ñ… ÑƒÐ·Ð»Ð° */
 EcoRegEx1NodeData* AllocNodeData(CEcoBRE1Builder_0E0B7D40* pCMe, EcoRegEx1NodeType type) {
 	uint32_t i;
 	char* ptr;
@@ -128,7 +127,7 @@ EcoRegEx1NodeData* AllocNodeData(CEcoBRE1Builder_0E0B7D40* pCMe, EcoRegEx1NodeTy
     return pData;
 }
 
-/* Ñîçäàíèå óçëà äåðåâà ñ ïðèâÿçêîé äàííûõ */
+/* Ð¡Ð¾Ð·Ð´Ð°Ð½Ð¸Ðµ ÑƒÐ·Ð»Ð° Ð´ÐµÑ€ÐµÐ²Ð° Ñ Ð¿Ñ€Ð¸Ð²ÑÐ·ÐºÐ¾Ð¹ Ð´Ð°Ð½Ð½Ñ‹Ñ… */
 IEcoBinaryTree1Node* CreateNodeWithData(CEcoBRE1Builder_0E0B7D40* pCMe, EcoRegEx1NodeData* pData) {
     IEcoBinaryTree1Node* pNode = 0;
 
@@ -242,12 +241,13 @@ static IEcoBinaryTree1NodePtr_t ECOCALLMETHOD CEcoBRE1Builder_0E0B7D40_CreateCon
     if (pNode) {
         if (left) {
             pCMe->m_pBinaryTree->pVTbl->InsertNode(pCMe->m_pBinaryTree, pNode, left);
-            left->pVTbl->Release(left); 
         }
         if (right) {
             pCMe->m_pBinaryTree->pVTbl->InsertNode(pCMe->m_pBinaryTree, pNode, right);
-            right->pVTbl->Release(right);
-        }
+        } 
+    } else {
+        if (left) left->pVTbl->Release(left);
+        if (right) right->pVTbl->Release(right);
     }
 
     return pNode;
@@ -278,12 +278,13 @@ static IEcoBinaryTree1NodePtr_t ECOCALLMETHOD CEcoBRE1Builder_0E0B7D40_CreateAlt
     if (pNode) {
         if (left) {
             pCMe->m_pBinaryTree->pVTbl->InsertNode(pCMe->m_pBinaryTree, pNode, left);
-            left->pVTbl->Release(left);
         }
         if (right) {
             pCMe->m_pBinaryTree->pVTbl->InsertNode(pCMe->m_pBinaryTree, pNode, right);
-            right->pVTbl->Release(right);
         }
+    } else {
+        if (left) left->pVTbl->Release(left);
+        if (right) right->pVTbl->Release(right);
     }
 
     return pNode;
@@ -299,7 +300,6 @@ IEcoBinaryTree1Node* CreateQuantifierNode(CEcoBRE1Builder_0E0B7D40* pCMe, IEcoBi
         pNode = CreateNodeWithData(pCMe, pData);
         if (pNode && child) {
             pCMe->m_pBinaryTree->pVTbl->InsertNode(pCMe->m_pBinaryTree, pNode, child);
-			child->pVTbl->Release(child);
         }
     }
     return pNode;
@@ -391,18 +391,28 @@ static IEcoBinaryTree1NodePtr_t ECOCALLMETHOD CEcoBRE1Builder_0E0B7D40_CreateGro
     return pNode;
 }
 
-/* Ñòðîèò èç ñèíòàñè÷åñêîãî äåðåâà êîíå÷íûé àâòîìàò */
+/* Ð¡Ñ‚Ñ€Ð¾Ð¸Ñ‚ Ð¸Ð· ÑÐ¸Ð½Ñ‚Ð°ÑÐ¸Ñ‡ÐµÑÐºÐ¾Ð³Ð¾ Ð´ÐµÑ€ÐµÐ²Ð° ÐºÐ¾Ð½ÐµÑ‡Ð½Ñ‹Ð¹ Ð°Ð²Ñ‚Ð¾Ð¼Ð°Ñ‚ */
 static int16_t ECOCALLMETHOD CEcoBRE1Builder_0E0B7D40_Build(IEcoRegEx1BuilderPtr_t me, IEcoBinaryTree1NodePtr_t root, IEcoRegEx1Ptr_t* ppIRegex) {
     CEcoBRE1Builder_0E0B7D40* pCMe = (CEcoBRE1Builder_0E0B7D40*)me;
-	int16_t result = ERR_ECO_POINTER;
-	CEcoBRE1RegEx_0E0B7D40* pRegExImpl = 0;
+    CEcoBRE1RegEx_0E0B7D40Ptr_t pCObj = 0;
+    int16_t result = ERR_ECO_POINTER;
+    CEcoBRE1RegEx_0E0B7D40* pRegExImpl = 0;
 
     if (me == 0 || root == 0 || ppIRegex == 0) {
         return result;
     }
 
-	result = createCEcoBRE1RegEx_0E0B7D40(&g_xCEcoBRE1RegEx_0E0B7D40, (IEcoUnknown*)pCMe->m_pISys, 0, ppIRegex);
-	if (result == 0 && *ppIRegex != 0) {
+    /* Ð’Ñ‹Ð´ÐµÐ»ÐµÐ½Ð¸Ðµ Ð¿Ð°Ð¼ÑÑ‚Ð¸ Ð´Ð»Ñ Ð´Ð°Ð½Ð½Ñ‹Ñ… ÑÐºÐ·ÐµÐ¼Ð¿Ð»ÑÑ€Ð° */
+    pCObj = (CEcoBRE1RegEx_0E0B7D40Ptr_t)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(CEcoBRE1RegEx_0E0B7D40));
+    /* Ð¤Ð¾Ñ€Ð¼Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ðµ Ð´Ð°Ð½Ð½Ñ‹Ñ… ÑÐºÐ·ÐµÐ¼Ð¿Ð»ÑÑ€Ð° */
+    pCObj = (CEcoBRE1RegEx_0E0B7D40Ptr_t)pCMe->m_pIMem->pVTbl->Copy(pCMe->m_pIMem, pCObj, &g_xCEcoBRE1RegEx_0E0B7D40, sizeof(CEcoBRE1RegEx_0E0B7D40));
+    /* Ð¡Ð¾Ð·Ð´Ð°Ð½Ð¸Ðµ ÐºÐ¾Ð¼Ð¿Ð¾Ð½ÐµÐ½Ñ‚Ð° */
+    result = pCObj->Create(pCObj, (IEcoUnknown*)pCMe->m_pISys, 0);
+    /* Ð˜Ð½Ð¸Ñ†Ð¸Ð°Ð»Ð¸Ð·Ð°Ñ†Ð¸Ñ ÐºÐ¾Ð¼Ð¿Ð¾Ð½ÐµÐ½Ñ‚Ð° */
+    result = pCObj->Init(pCObj, (IEcoUnknown*)pCMe->m_pISys);
+    *ppIRegex = (IEcoRegEx1Ptr_t)pCObj;
+
+    if (result == 0 && *ppIRegex != 0) {
         pRegExImpl = (CEcoBRE1RegEx_0E0B7D40*)*ppIRegex;
         pRegExImpl->m_pRoot = root;
         root->pVTbl->AddRef(root);
@@ -473,7 +483,7 @@ int16_t ECOCALLMETHOD initCEcoBRE1Builder_0E0B7D40(/*in*/ CEcoBRE1Builder_0E0B7D
  * </description>
  *
  */
-int16_t ECOCALLMETHOD createCEcoBRE1Builder_0E0B7D40(/* in */ CEcoBRE1Builder_0E0B7D40Ptr_t pCMe, /* in */ IEcoUnknownPtr_t pIUnkSystem, /* in */ IEcoUnknownPtr_t pIUnkOuter, /* in */ IEcoRegEx1BuilderPtr_t* ppIBuilder) {
+int16_t ECOCALLMETHOD createCEcoBRE1Builder_0E0B7D40(/* in */ CEcoBRE1Builder_0E0B7D40Ptr_t pCMe, /* in */ IEcoUnknownPtr_t pIUnkSystem, /* in */ IEcoUnknownPtr_t pIUnkOuter) {
     int16_t result = ERR_ECO_POINTER;
     CEcoBRE1Builder_0E0B7D40* pNewObj = 0;
     IEcoMemoryAllocator1* pIMem = 0;
@@ -482,31 +492,31 @@ int16_t ECOCALLMETHOD createCEcoBRE1Builder_0E0B7D40(/* in */ CEcoBRE1Builder_0E
     IEcoInterfaceBus1MemExt* pIMemExt = 0;
     UGUID* rcid = (UGUID*)&CID_EcoMemoryManager1;
 
-    if (pCMe == 0 || pIUnkSystem == 0 || ppIBuilder == 0) {
+    if (pCMe == 0 || pIUnkSystem == 0) {
         return ERR_ECO_POINTER;
     }
 
-    /* Ïîëó÷àåì ñèñòåìíûé èíòåðôåéñ */
+    /* ÐŸÐ¾Ð»ÑƒÑ‡Ð°ÐµÐ¼ ÑÐ¸ÑÑ‚ÐµÐ¼Ð½Ñ‹Ð¹ Ð¸Ð½Ñ‚ÐµÑ€Ñ„ÐµÐ¹Ñ */
     result = pIUnkSystem->pVTbl->QueryInterface(pIUnkSystem, &GID_IEcoSystem, (void **)&pISys);
     if (result != 0 || pISys == 0) {
         return ERR_ECO_NOSYSTEM;
     }
 
-    /* Ïîëó÷àåì èíòåðôåéñíóþ øèíó */
+    /* ÐŸÐ¾Ð»ÑƒÑ‡Ð°ÐµÐ¼ Ð¸Ð½Ñ‚ÐµÑ€Ñ„ÐµÐ¹ÑÐ½ÑƒÑŽ ÑˆÐ¸Ð½Ñƒ */
     result = pISys->pVTbl->QueryInterface(pISys, &IID_IEcoInterfaceBus1, (void **)&pIBus);
     if (result != 0 || pIBus == 0) {
         pISys->pVTbl->Release(pISys);
         return ERR_ECO_NOBUS;
     }
 
-    /* Ïîëó÷àåì ìåíåäæåð ïàìÿòè */
+    /* ÐŸÐ¾Ð»ÑƒÑ‡Ð°ÐµÐ¼ Ð¼ÐµÐ½ÐµÐ´Ð¶ÐµÑ€ Ð¿Ð°Ð¼ÑÑ‚Ð¸ */
     result = pIBus->pVTbl->QueryInterface(pIBus, &IID_IEcoInterfaceBus1MemExt, (void**)&pIMemExt);
     if (result == 0 && pIMemExt != 0) {
         rcid = (UGUID*)pIMemExt->pVTbl->get_Manager(pIMemExt);
         pIMemExt->pVTbl->Release(pIMemExt);
     }
 
-    /* Ïîëó÷àåì àëëîêàòîð ïàìÿòè */
+    /* ÐŸÐ¾Ð»ÑƒÑ‡Ð°ÐµÐ¼ Ð°Ð»Ð»Ð¾ÐºÐ°Ñ‚Ð¾Ñ€ Ð¿Ð°Ð¼ÑÑ‚Ð¸ */
     result = pIBus->pVTbl->QueryComponent(pIBus, rcid, 0, &IID_IEcoMemoryAllocator1, (void**) &pIMem);
     if (result != 0 || pIMem == 0) {
         pIBus->pVTbl->Release(pIBus);
@@ -514,7 +524,7 @@ int16_t ECOCALLMETHOD createCEcoBRE1Builder_0E0B7D40(/* in */ CEcoBRE1Builder_0E
         return ERR_ECO_GET_MEMORY_ALLOCATOR;
     }
 
-    /* Âûäåëÿåì ïàìÿòü ïîä íîâûé îáúåêò */
+    /* Ð’Ñ‹Ð´ÐµÐ»ÑÐµÐ¼ Ð¿Ð°Ð¼ÑÑ‚ÑŒ Ð¿Ð¾Ð´ Ð½Ð¾Ð²Ñ‹Ð¹ Ð¾Ð±ÑŠÐµÐºÑ‚ */
     pNewObj = (CEcoBRE1Builder_0E0B7D40*)pIMem->pVTbl->Alloc(pIMem, sizeof(CEcoBRE1Builder_0E0B7D40));
     if (pNewObj == 0) {
         pIMem->pVTbl->Release(pIMem);
@@ -523,10 +533,10 @@ int16_t ECOCALLMETHOD createCEcoBRE1Builder_0E0B7D40(/* in */ CEcoBRE1Builder_0E
         return ERR_ECO_OUTOFMEMORY;
     }
 
-    /* Êîïèðóåì äàííûå èç øàáëîíà */
+    /* ÐšÐ¾Ð¿Ð¸Ñ€ÑƒÐµÐ¼ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¸Ð· ÑˆÐ°Ð±Ð»Ð¾Ð½Ð° */
     pNewObj = (CEcoBRE1Builder_0E0B7D40*)pIMem->pVTbl->Copy(pIMem, pNewObj, pCMe, sizeof(CEcoBRE1Builder_0E0B7D40));
     
-    /* Èíèöèàëèçèðóåì ïîëÿ */
+    /* Ð˜Ð½Ð¸Ñ†Ð¸Ð°Ð»Ð¸Ð·Ð¸Ñ€ÑƒÐµÐ¼ Ð¿Ð¾Ð»Ñ */
     pNewObj->m_cRef = 1;
     pNewObj->m_pIMem = pIMem;
     pIMem->pVTbl->AddRef(pIMem);
@@ -536,9 +546,6 @@ int16_t ECOCALLMETHOD createCEcoBRE1Builder_0E0B7D40(/* in */ CEcoBRE1Builder_0E
     
     pNewObj->m_Name = 0;
     pNewObj->m_pBinaryTree = 0;
-
-    /* Âîçâðàùàåì óêàçàòåëü íà èíòåðôåéñ */
-    *ppIBuilder = (IEcoRegEx1BuilderPtr_t)pNewObj;
 
     pIBus->pVTbl->Release(pIBus);
 

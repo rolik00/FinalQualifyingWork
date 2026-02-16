@@ -1,4 +1,4 @@
-/*
+п»ї/*
  * <character encoding>
  *   Cyrillic (UTF-8 with signature) - Codepage 65001
  * </character encoding>
@@ -52,7 +52,7 @@ typedef struct CEcoBRE1Builder_0E0B7D40 {
     /* Instance data */
     char_t* m_Name;
 
-	/* Ссылка на компонент BinaryTree */
+	/* РЎСЃС‹Р»РєР° РЅР° РєРѕРјРїРѕРЅРµРЅС‚ BinaryTree */
     IEcoBinaryTree1* m_pBinaryTree; 
 
 } CEcoBRE1Builder_0E0B7D40;

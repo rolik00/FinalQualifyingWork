@@ -1,4 +1,4 @@
-/*
+п»ї/*
  * <character encoding>
  *   Cyrillic (UTF-8 with signature) - Codepage 65001
  * </character encoding>
@@ -23,7 +23,7 @@
 #include "IEcoRegEx1.h"
 #include "IEcoSystem1.h"
 #include "IdEcoMemoryManager1.h"
-// временно
+// РІСЂРµРјРµРЅРЅРѕ
 #include "IEcoBinaryTree1.h" 
 
 typedef struct CEcoBRE1RegEx_0E0B7D40* CEcoBRE1RegEx_0E0B7D40Ptr_t;
@@ -54,7 +54,7 @@ typedef struct CEcoBRE1RegEx_0E0B7D40 {
     /* Instance data */
     char_t* m_Name;
 
-	/* временно */
+	/* РІСЂРµРјРµРЅРЅРѕ */
     IEcoBinaryTree1Node* m_pRoot;
 
 } CEcoBRE1RegEx_0E0B7D40;

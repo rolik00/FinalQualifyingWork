@@ -1,4 +1,4 @@
-﻿Build started 11.02.2026 19:08:28.
+﻿Build started 16.02.2026 21:35:35.
      1>Project "D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BRE1\AssemblyFiles\Windows\VisualStudio_10\Eco.BRE1.vcxproj" on node 2 (rebuild target(s)).
      1>_PrepareForClean:
          Deleting file "Eco.BRE1\StaticDebug\Eco.BRE1.lastbuildstate".
@@ -8,10 +8,8 @@
          D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I..\..\..\HeaderFiles /I..\..\..\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Core1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.InterfaceBus1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.System1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.MemoryManager1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FileSystemManagement1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.List1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BinaryTree1\SharedFiles /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D ECO_WINDOWS /D ECO_WIN32 /D ECO_X86_32 /D UGUID_UTILITY /D ECO_LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Eco.BRE1\StaticDebug\\" /Fd"Eco.BRE1\StaticDebug\vc100.pdb" /Gz /TC /analyze- /errorReport:prompt ..\..\..\SourceFiles\CEcoBRE1.c ..\..\..\SourceFiles\CEcoBRE1Builder.c ..\..\..\SourceFiles\CEcoBRE1Factory.c ..\..\..\SourceFiles\CEcoBRE1RegEx.c ..\..\..\SourceFiles\CEcoBRE1EnumMatches.c
          CEcoBRE1EnumMatches.c
          CEcoBRE1RegEx.c
-     1>d:\myproject\fqw\eco.toolchain\eco.framework\eco.bre1\sourcefiles\cecobre1regex.c(302): warning C4113: 'int16_t (__stdcall *)(CEcoBRE1RegEx_0E0B7D40Ptr_t,IEcoUnknownPtr_t,IEcoUnknownPtr_t,IEcoRegEx1Ptr_t *)' differs in parameter lists from 'int16_t (__stdcall *)(CEcoBRE1RegEx_0E0B7D40Ptr_t,IEcoUnknownPtr_t,IEcoUnknownPtr_t)'
          CEcoBRE1Factory.c
          CEcoBRE1Builder.c
-     1>d:\myproject\fqw\eco.toolchain\eco.framework\eco.bre1\sourcefiles\cecobre1builder.c(603): warning C4113: 'int16_t (__stdcall *)(CEcoBRE1Builder_0E0B7D40Ptr_t,IEcoUnknownPtr_t,IEcoUnknownPtr_t,IEcoRegEx1BuilderPtr_t *)' differs in parameter lists from 'int16_t (__stdcall *)(CEcoBRE1Builder_0E0B7D40Ptr_t,IEcoUnknownPtr_t,IEcoUnknownPtr_t)'
          CEcoBRE1.c
          Generating Code...
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(1151,5): warning MSB8012: TargetPath(D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BRE1\AssemblyFiles\Windows\VisualStudio_10\Eco.BRE1\StaticDebug\755D526AEBF943E9B4AA4F860E0B7D40.lib) does not match the Library's OutputFile property value (D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BRE1\BuildFiles\Windows\x86\StaticDebug\755D526AEBF943E9B4AA4F860E0B7D40.lib). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Lib.OutputFile).
@@ -29,4 +27,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.96
+Time Elapsed 00:00:01.01

@@ -1,4 +1,4 @@
-/*
+п»ї/*
  * <character encoding>
  *   Cyrillic (UTF-8 with signature) - Codepage 65001
  * </character encoding>
@@ -22,6 +22,8 @@
 #include "IEcoInterfaceBus1.h"
 #include "IEcoInterfaceBus1MemExt.h"
 #include "CEcoBRE1RegEx.h"
+
+extern CEcoBRE1RegEx_0E0B7D40 g_xCEcoBRE1RegEx_0E0B7D40;
 
 /*
  *
@@ -191,7 +193,7 @@ int16_t ECOCALLMETHOD initCEcoBRE1RegEx_0E0B7D40(/*in*/ CEcoBRE1RegEx_0E0B7D40Pt
  * </description>
  *
  */
-int16_t ECOCALLMETHOD createCEcoBRE1RegEx_0E0B7D40(/* in */ CEcoBRE1RegEx_0E0B7D40Ptr_t pCMe, /* in */ IEcoUnknownPtr_t pIUnkSystem, /* in */ IEcoUnknownPtr_t pIUnkOuter, /* in */ IEcoRegEx1Ptr_t* ppIRegex) {
+int16_t ECOCALLMETHOD createCEcoBRE1RegEx_0E0B7D40(/* in */ CEcoBRE1RegEx_0E0B7D40Ptr_t pCMe, /* in */ IEcoUnknownPtr_t pIUnkSystem, /* in */ IEcoUnknownPtr_t pIUnkOuter) {
     int16_t result = ERR_ECO_POINTER;
     CEcoBRE1RegEx_0E0B7D40* pNewObj = 0;
     IEcoMemoryAllocator1* pIMem = 0;
@@ -199,9 +201,8 @@ int16_t ECOCALLMETHOD createCEcoBRE1RegEx_0E0B7D40(/* in */ CEcoBRE1RegEx_0E0B7D
     IEcoInterfaceBus1* pIBus = 0;
     IEcoInterfaceBus1MemExt* pIMemExt = 0;
     UGUID* rcid = (UGUID*)&CID_EcoMemoryManager1;
-    extern CEcoBRE1RegEx_0E0B7D40 g_xCEcoBRE1RegEx_0E0B7D40;
 
-    if (pIUnkSystem == 0 || ppIRegex == 0) {
+    if (pIUnkSystem == 0) {
         return ERR_ECO_POINTER;
     }
 
@@ -238,7 +239,7 @@ int16_t ECOCALLMETHOD createCEcoBRE1RegEx_0E0B7D40(/* in */ CEcoBRE1RegEx_0E0B7D
     }
 
     pNewObj = (CEcoBRE1RegEx_0E0B7D40*)pIMem->pVTbl->Copy(pIMem, pNewObj, &g_xCEcoBRE1RegEx_0E0B7D40, sizeof(CEcoBRE1RegEx_0E0B7D40));
-    
+
     pNewObj->m_cRef = 1;
     pNewObj->m_pIMem = pIMem;
     pIMem->pVTbl->AddRef(pIMem);
@@ -248,8 +249,6 @@ int16_t ECOCALLMETHOD createCEcoBRE1RegEx_0E0B7D40(/* in */ CEcoBRE1RegEx_0E0B7D
     
     pNewObj->m_Name = 0;
     pNewObj->m_pRoot = 0;
-
-    *ppIRegex = (IEcoRegEx1Ptr_t)pNewObj;
 
     pIBus->pVTbl->Release(pIBus);
 
@@ -305,5 +304,5 @@ CEcoBRE1RegEx_0E0B7D40 g_xCEcoBRE1RegEx_0E0B7D40 = {
     0, /* m_pISys */
     0, /* m_pIMem */
     0, /* m_Name */
-	0 //временно
+	0 //РІСЂРµРјРµРЅРЅРѕ
 };
