@@ -54,14 +54,6 @@ typedef struct IEcoRegEx1VTbl {
 
     /* IEcoRegEx1 */
 
-    /* IsMatch: Проверка наличия совпадения */
-    //int16_t (ECOCALLMETHOD *IsMatch)(
-    //    /* in */ IEcoRegEx1Ptr_t me, 
-    //    /* in */ voidptr_t str,            /* Строка для поиска */
-    //    /* in */ uint32_t sizeInBytes,     /* Размер в байтах */
-    //    /* in */ uint32_t flags            /* Флаги кодировки и опции (например, CaseInsensitive) */
-    //);
-
     /* Match: Поиск первого совпадения */
     int16_t (ECOCALLMETHOD *Match)(
         /* in */ IEcoRegEx1Ptr_t me, 
@@ -69,6 +61,14 @@ typedef struct IEcoRegEx1VTbl {
         /* in */ uint32_t sizeInBytes, 
         /* in */ uint32_t flags, 
 		/* out */ EcoRegEx1Match** pMatch
+    );
+
+	 /* IsMatch: Проверка наличия совпадения */
+    int16_t (ECOCALLMETHOD *IsMatch)(
+        /* in */ IEcoRegEx1Ptr_t me, 
+        /* in */ voidptr_t str,            /* Строка для поиска */
+        /* in */ uint32_t sizeInBytes,     /* Размер в байтах */
+        /* in */ uint32_t flags            /* Флаги кодировки и опции (например, CaseInsensitive) */
     );
 
     /* Matches: Возвращает итератор для всех совпадений */

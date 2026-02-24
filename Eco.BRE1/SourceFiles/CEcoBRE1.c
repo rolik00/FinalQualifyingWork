@@ -21,18 +21,18 @@
 #include "IEcoInterfaceBus1.h"
 #include "IEcoInterfaceBus1MemExt.h"
 #include "CEcoBRE1.h"
-#include "CEcoBRE1Builder.h" 
+#include "CEcoBRE1Builder.h"
 
 extern CEcoBRE1Builder_0E0B7D40 g_xCEcoBRE1Builder_0E0B7D40;
 
 /* Вспомогательная функция: парсинг целого числа */
 uint32_t ParseInt(ParseContext* ctx) {
     uint32_t num = 0;
-    while (*ctx->current >= '0' && *ctx->current <= '9') {
+	while (*ctx->current >= '0' && *ctx->current <= '9') {
         num = num * 10 + (*ctx->current - '0');
         ctx->current++;
     }
-    return num;
+	return num;
 }
 
 IEcoBinaryTree1NodePtr_t ParseExpression(ParseContext* ctx);
@@ -50,54 +50,58 @@ IEcoBinaryTree1NodePtr_t ParseAtom(ParseContext* ctx) {
     }
 
     if (c == '.') {
-        node = ctx->builder->pVTbl->CreateAnyChar(ctx->builder);
+		node = ctx->builder->pVTbl->CreateAnyChar(ctx->builder);
         ctx->current++;
-    } else if (c == '(') {
-        ctx->current++;
+	} else if (c == '(') {
+		ctx->current++;
         node = ParseExpression(ctx);
         if (*ctx->current == ')') {
             ctx->current++; 
             node = ctx->builder->pVTbl->CreateGroup(ctx->builder, node, 0);
-        } else {
-            // Ошибка - не закрыта скобка
+		} else {
             if (node) node->pVTbl->Release(node);
             return 0;
         }
     } else if (c == '[') {
 		ctx->current++; 
-		if (*ctx->current == 0) return 0;
+		if (*ctx->current == 0) {
+			return 0;
+		}
 
         start = *ctx->current;
         ctx->current++;
-        
+		
         if (*ctx->current == '-') {
 			ctx->current++; 
 
-			if (*ctx->current == 0) return 0;
+			if (*ctx->current == 0) {
+                return 0;
+            }
 
             end = *ctx->current;
 			ctx->current++;
-        } else {
+		} else {
             end = start;
-        }
+		}
 
         if (*ctx->current == ']') {
             ctx->current++; 
-        } else {
-            // Ошибка - не закрыта скобка
-			return 0;
+		} else {
+            return 0;
         }
         
         node = ctx->builder->pVTbl->CreateRange(ctx->builder, start, end);
-    } else if (c == '\\') {
-        ctx->current++;
-        if (*ctx->current == 0) return 0;
+	} else if (c == '\\') {
+		ctx->current++;
+        if (*ctx->current == 0) {
+            return 0;
+        }
         
         c = *ctx->current;
         ctx->current++;
         
         node = ctx->builder->pVTbl->CreateLiteral(ctx->builder, (uint32_t)c);
-    } else {
+	} else {
         node = ctx->builder->pVTbl->CreateLiteral(ctx->builder, (uint32_t)c);
         ctx->current++;
     }
@@ -113,44 +117,49 @@ IEcoBinaryTree1NodePtr_t ParseQuantifier(ParseContext* ctx) {
 	char c;
 	uint32_t min = 0, max = 0;
     
-    if (node == 0) return 0;
+    if (node == 0) {
+        return 0;
+    }
 
     c = *ctx->current;
-
+	
     if (c == '*') {
-        node = ctx->builder->pVTbl->CreateStar(ctx->builder, node);
+		node = ctx->builder->pVTbl->CreateStar(ctx->builder, node);
         ctx->current++;
     } else if (c == '+') {
-        node = ctx->builder->pVTbl->CreatePlus(ctx->builder, node);
+		node = ctx->builder->pVTbl->CreatePlus(ctx->builder, node);
         ctx->current++;
     } else if (c == '?') {
-        node = ctx->builder->pVTbl->CreateOptional(ctx->builder, node);
+		node = ctx->builder->pVTbl->CreateOptional(ctx->builder, node);
         ctx->current++;
     } else if (c == '{') {
-        ctx->current++;
+		ctx->current++;
         
-        min = ParseInt(ctx);
-        
+		min = ParseInt(ctx);
+		
         if (*ctx->current == ',') {
             ctx->current++;
-            if (*ctx->current == '}') {
+			if (*ctx->current == '}') {
                 max = 0xFFFFFFFF; 
-            } else {
+				ctx->current++;
+			} else {
                 max = ParseInt(ctx);
+				if (*ctx->current == '}') {
+					ctx->current++;
+				} else {
+                    node->pVTbl->Release(node);
+                    return 0;
+                }
             }
-        } else {
-            max = min;
-        }
+        } else if (*ctx->current == '}') {
+			max = min;
+			ctx->current++;
+		} else {
+			node->pVTbl->Release(node);
+			return 0;
+		}
 
-        if (*ctx->current == '}') {
-            ctx->current++;
-        } else {
-            // Ошибка - не закрыта скобка
-            node->pVTbl->Release(node);
-            return 0;
-        }
-
-        node = ctx->builder->pVTbl->CreateRepeat(ctx->builder, node, min, max);
+		node = ctx->builder->pVTbl->CreateRepeat(ctx->builder, node, min, max);
     }
 
     return node;
@@ -164,13 +173,15 @@ IEcoBinaryTree1NodePtr_t ParseConcat(ParseContext* ctx) {
     IEcoBinaryTree1NodePtr_t right = 0;
 	IEcoBinaryTree1NodePtr_t newLeft = 0;
 
-	if (left == 0) return 0;
-
+	if (left == 0) {
+        return 0;
+    }
+	
     while (*ctx->current != 0 && *ctx->current != '|' && *ctx->current != ')') {
         right = ParseQuantifier(ctx);
 
         if (right) {
-            newLeft = ctx->builder->pVTbl->CreateConcat(ctx->builder, left, right);
+			newLeft = ctx->builder->pVTbl->CreateConcat(ctx->builder, left, right);
 			if (newLeft == 0) {
                 left->pVTbl->Release(left);
                 right->pVTbl->Release(right);
@@ -178,7 +189,7 @@ IEcoBinaryTree1NodePtr_t ParseConcat(ParseContext* ctx) {
             }
             left = newLeft;
         } else {
-            break;
+			break;
         }
     }
 
@@ -193,22 +204,24 @@ IEcoBinaryTree1NodePtr_t ParseExpression(ParseContext* ctx) {
 	IEcoBinaryTree1NodePtr_t right = 0;
 	IEcoBinaryTree1NodePtr_t newLeft = 0;
 
-	if (left == 0) return 0;
+	if (left == 0) {
+        return 0;
+    }
 	
     while (*ctx->current == '|') {
 		ctx->current++;
         right = ParseConcat(ctx);
 		if (right) {
-            newLeft = ctx->builder->pVTbl->CreateAlternation(ctx->builder, left, right);
+			newLeft = ctx->builder->pVTbl->CreateAlternation(ctx->builder, left, right);
             if (newLeft == 0) {
-                left->pVTbl->Release(left);
+				left->pVTbl->Release(left);
                 right->pVTbl->Release(right);
                 return 0;
             }
             left = newLeft;
         }
         else {
-            left->pVTbl->Release(left);
+			left->pVTbl->Release(left);
             return 0;
         }
     }
@@ -307,8 +320,8 @@ static int16_t ECOCALLMETHOD CEcoBRE1_0E0B7D40_CreateBuilder(IEcoBRE1Ptr_t me, I
     CEcoBRE1Builder_0E0B7D40Ptr_t pCObj = 0;
     int16_t result = 0;
 
-    if (me == 0 || ppIBuilder == 0) {
-        return ERR_ECO_POINTER;
+	if (me == 0 || ppIBuilder == 0) {
+		return ERR_ECO_POINTER;
     }
 
     /* Выделение памяти для данных экземпляра */
@@ -317,11 +330,20 @@ static int16_t ECOCALLMETHOD CEcoBRE1_0E0B7D40_CreateBuilder(IEcoBRE1Ptr_t me, I
     pCObj = (CEcoBRE1Builder_0E0B7D40Ptr_t)pCMe->m_pIMem->pVTbl->Copy(pCMe->m_pIMem, pCObj, &g_xCEcoBRE1Builder_0E0B7D40, sizeof(CEcoBRE1Builder_0E0B7D40));
     /* Создание компонента */
     result = pCObj->Create(pCObj, (IEcoUnknown*)pCMe->m_pISys, 0);
-    /* Инициализация компонента */
+    if (result != 0) {
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pCObj);
+        return result;
+    }
+	/* Инициализация компонента */
     result = pCObj->Init(pCObj, (IEcoUnknown*)pCMe->m_pISys);
-    *ppIBuilder = (IEcoRegEx1BuilderPtr_t)pCObj;
-
-    return result;
+    if (result != 0) {
+        pCObj->Delete(pCObj);
+        return result;
+    }
+	
+	*ppIBuilder = (IEcoRegEx1BuilderPtr_t)pCObj;
+	 
+	return result;
 }
 
 /*
@@ -371,7 +393,6 @@ static int16_t ECOCALLMETHOD CEcoBRE1_0E0B7D40_CreateRegEx(
     }
 
     pBuilder->pVTbl->Release(pBuilder);
-
     return result;
 }
 

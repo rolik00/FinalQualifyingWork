@@ -23,8 +23,8 @@
 #include "IEcoRegEx1.h"
 #include "IEcoSystem1.h"
 #include "IdEcoMemoryManager1.h"
-// временно
 #include "IEcoBinaryTree1.h" 
+#include "IEcoFSM1.h"
 
 typedef struct CEcoBRE1RegEx_0E0B7D40* CEcoBRE1RegEx_0E0B7D40Ptr_t;
 
@@ -37,7 +37,7 @@ typedef struct CEcoBRE1RegEx_0E0B7D40 {
     /* Instance initialization */
     int16_t (ECOCALLMETHOD *Init)(/*in*/ CEcoBRE1RegEx_0E0B7D40Ptr_t pCMe, /* in */ IEcoUnknownPtr_t pIUnkSystem);
     /* Instance creation */
-    int16_t (ECOCALLMETHOD *Create)(/*in*/ CEcoBRE1RegEx_0E0B7D40Ptr_t pCMe, /* in */ IEcoUnknownPtr_t pIUnkSystem, /* in */ IEcoUnknownPtr_t pIUnkOuter);
+    int16_t (ECOCALLMETHOD *Create)(/*in*/ CEcoBRE1RegEx_0E0B7D40Ptr_t pCMe, /* in */ IEcoUnknownPtr_t pIUnkSystem, /* in */ IEcoUnknownPtr_t pIUnkOuter, /* out */ IEcoRegEx1Ptr_t* ppIRegex);
     /* Deletion */
     void (ECOCALLMETHOD *Delete)(/*in*/ CEcoBRE1RegEx_0E0B7D40Ptr_t pCMe);
 
@@ -54,8 +54,11 @@ typedef struct CEcoBRE1RegEx_0E0B7D40 {
     /* Instance data */
     char_t* m_Name;
 
-	/* временно */
     IEcoBinaryTree1Node* m_pRoot;
+
+	IEcoFSM1* m_pFSM;  
+	IEcoFSM1StateMachine* m_pStateMachine;
+	IEcoFSM1State* m_pStartState;
 
 } CEcoBRE1RegEx_0E0B7D40;
 

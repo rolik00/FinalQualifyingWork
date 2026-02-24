@@ -24,9 +24,9 @@
 #include "IdEcoInterfaceBus1.h"
 #include "IdEcoFileSystemManagement1.h"
 #include "IdEcoBRE1.h"
+#include "IEcoBRE1.h"
 #include "IdEcoBinaryTree1.h"
 #include "IEcoBinaryTree1.h"
-#include "IEcoBRE1.h"
 #include "IEcoRegEx1.h"
 #include "CEcoBRE1RegEx.h"
 #include "IdEcoList1.h"
@@ -36,106 +36,85 @@
 #include "IEcoLog1ConsoleAffiliate.h"
 #include "IEcoLog1SimpleLayout.h"
 #include "IdEcoDateTime1.h"
-char* getSymbol(uint32_t min, uint32_t max) {
-	if (min == 0 && max == 0xFFFFFFFF) return " (*)";
-    else if (min == 1 && max == 0xFFFFFFFF) return " (+)";
-    else if (min == 0 && max == 1) return " (?)";
-    return "";          
-}
+#include "IdEcoFSM1.h"
+#include "IEcoFSM1.h"
+#include "IdEcoData1.h"
 
-void DebugPrintTree(IEcoLog1* pILog, IEcoBinaryTree1Node* node, int depth) {
-    EcoRegEx1NodeData* pData = 0;
-    int i;
-	char buffer[256];
-	char* s;
-    
-    if (node == 0) return;
-
-    pData = (EcoRegEx1NodeData*)node->pVTbl->get_Data(node);
-    
-    /* Отступ для визуализации глубины */
-    for(i = 0; i < depth; i++) printf("  ");
-
-    if (pData) {
-        switch (pData->type) {
-            case ECO_REGEX_NODE_LITERAL: 
-                pILog->pVTbl->InfoFormat(pILog, "LITERAL '%c'", (char)pData->data.literal.codePoint); 
-                break;
-            case ECO_REGEX_NODE_CONCAT: 
-                pILog->pVTbl->Info(pILog, "CONCAT"); 
-                break;
-            case ECO_REGEX_NODE_ALTERNATION: 
-                pILog->pVTbl->Info(pILog, "OR"); 
-                break;
-            case ECO_REGEX_NODE_QUANTIFIER:
-				s =  getSymbol(pData->data.quantifier.min, pData->data.quantifier.max);
-				if (pData->data.quantifier.max == 0xFFFFFFFF) {
-					sprintf(buffer, "QUANTIFIER %s {%d, inf}", s, pData->data.quantifier.min);
-				} else {
-					sprintf(buffer, "QUANTIFIER %s {%d, %d}", s, pData->data.quantifier.min, pData->data.quantifier.max);
-				}
-				pILog->pVTbl->Info(pILog, buffer);
-				break;
-                /*pILog->pVTbl->InfoFormat(pILog, "QUANTIFIER %s", getSymbol(pData->data.quantifier.min, pData->data.quantifier.max));
-                if (pData->data.quantifier.max == 0xFFFFFFFF)
-                    pILog->pVTbl->InfoFormat(pILog, "{%d, inf}", pData->data.quantifier.min);
-                else
-                    pILog->pVTbl->InfoFormat(pILog, "{%d, %d}", pData->data.quantifier.min, pData->data.quantifier.max);
-                break;*/
-            case ECO_REGEX_NODE_ANYCHAR: 
-                pILog->pVTbl->Info(pILog, "ANY CHAR (.)"); 
-                break;
-            case ECO_REGEX_NODE_RANGE: 
-                pILog->pVTbl->InfoFormat(pILog, "RANGE [%c-%c]", (char)pData->data.range.start, (char)pData->data.range.end); 
-                break;
-            case ECO_REGEX_NODE_GROUP: 
-                pILog->pVTbl->Info(pILog, "GROUP ()"); 
-                break;
-            default: 
-                pILog->pVTbl->InfoFormat(pILog, "UNKNOWN NODE TYPE %d", pData->type); 
-                break;
-        }
-    } else {
-        pILog->pVTbl->Info(pILog, "NODE (No Data)");
-    }
-
-    DebugPrintTree(pILog, node->pVTbl->get_Left(node), depth + 1);
-    DebugPrintTree(pILog, node->pVTbl->get_Right(node), depth + 1);
-}
-
-void TestRegEx(IEcoLog1* pILog, IEcoBRE1* pBRE, voidptr_t pattern) {
+/* Тест построения NFA из синтаксического дерева */
+void TestNFABuilding(IEcoLog1* pILog, IEcoBRE1* pBRE, voidptr_t pattern, int expectedStates, int expectedTransitions) {
     IEcoRegEx1* pRegEx = 0;
     int16_t result = 0;
 	CEcoBRE1RegEx_0E0B7D40* pImpl = 0;
+	IEcoList1* pStates = 0;
+    IEcoList1* pTransitions = 0;
+    uint32_t stateCount = 0;
+    uint32_t transCount = 0;
+    int hasFSM = 0;
 
-    pILog->pVTbl->InfoFormat(pILog, "\n=== TEST PATTERN: \"%s\" ===\n", pattern);
-
-	if (pBRE == 0) {
-        return;
-    }
-
-    if (pBRE->pVTbl == 0) {
-        return;
-    }
-
-    if (pBRE->pVTbl->CreateRegEx == 0) {
-        return;
-    }
+    pILog->pVTbl->InfoFormat(pILog, "\n=== TEST PATTERN: \"%s\" ===", pattern);
 
     result = pBRE->pVTbl->CreateRegEx(pBRE, pattern, 0, 0, &pRegEx);
 
-    if (result == 0 && pRegEx != 0) {
-        pImpl = (CEcoBRE1RegEx_0E0B7D40*)pRegEx;
-        
-        if (pImpl->m_pRoot != 0) {
-            pILog->pVTbl->Info(pILog, "Structure:");
-            DebugPrintTree(pILog, pImpl->m_pRoot, 1);
-        }
-
-        pRegEx->pVTbl->Release(pRegEx);
+	if (result != 0 || pRegEx == 0) {
+        pILog->pVTbl->InfoFormat(pILog, "FAILED: Failed to create RegEx for pattern \"%s\", error code: %d", pattern, result);
+		return;
     }
+
+    pImpl = (CEcoBRE1RegEx_0E0B7D40*)pRegEx;
+    hasFSM = (pImpl->m_pStateMachine != 0);
+	if (!hasFSM) {
+        pILog->pVTbl->InfoFormat(pILog, "FAILED: NFA not built for pattern \"%s\"", pattern);
+        pRegEx->pVTbl->Release(pRegEx);
+		return;
+    }
+
+	pStates = pImpl->m_pStateMachine->pVTbl->get_States(pImpl->m_pStateMachine);
+    pTransitions = pImpl->m_pStateMachine->pVTbl->get_Transitions(pImpl->m_pStateMachine);
+        
+    stateCount = pStates->pVTbl->Count(pStates);
+    transCount = pTransitions->pVTbl->Count(pTransitions);
+        
+    if (stateCount != (uint32_t)expectedStates) {
+		pILog->pVTbl->InfoFormat(pILog, "FAILED: State count mismatch for pattern \"%s\". Expected: %d, Actual: %d", pattern, expectedStates, stateCount);
+	    return;
+	}
+        
+    if (transCount != (uint32_t)expectedTransitions) {
+        pILog->pVTbl->InfoFormat(pILog, "FAILED: Transition count mismatch for pattern \"%s\". Expected: %d, Actual: %d", pattern, expectedTransitions, transCount);
+	    return;
+    }
+   
+    pILog->pVTbl->InfoFormat(pILog, "PASSED: Pattern \"%s\" - States: %d, Transitions: %d", pattern, stateCount, transCount);
+
+    /* Освобождаем ресурсы */
+    pRegEx->pVTbl->Release(pRegEx);
 }
 
+/* Тест функции IsMatch */
+void TestIsMatch(IEcoLog1* pILog, IEcoBRE1* pBRE, voidptr_t pattern, voidptr_t text, int expected) {
+    IEcoRegEx1* pRegEx = 0;
+    int16_t result = 0;
+    int isMatch = 0;
+    
+    pILog->pVTbl->InfoFormat(pILog, "\nTEST: pattern - \"%s\", text - \"%s\"", pattern, text);
+    
+    result = pBRE->pVTbl->CreateRegEx(pBRE, (voidptr_t)pattern, 0, 0, &pRegEx);
+    
+    if (result != 0 || pRegEx == 0) {
+        pILog->pVTbl->InfoFormat(pILog, "FAILED: Cannot create RegEx, error code: %d", result);
+        return;
+    }
+    
+	isMatch = pRegEx->pVTbl->IsMatch(pRegEx, (voidptr_t)text, 0, 0);
+    
+    if (isMatch == expected) {
+        pILog->pVTbl->InfoFormat(pILog, "PASSED: IsMatch = %d", isMatch);
+    } else {
+        pILog->pVTbl->InfoFormat(pILog, "FAILED: Expected %d, got %d", expected, isMatch);
+    }
+    
+    pRegEx->pVTbl->Release(pRegEx);
+}
 
 /*
  *
@@ -187,8 +166,13 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
         /* Освобождение в случае ошибки */
         goto Release;
     }
-    /* Регистрация статического компонента для работы с бинарным деревом */
+	/* Регистрация статического компонента для работы с бинарным деревом */
     result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoBinaryTree1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_7CAD4D0215EF4EDFB1FF6A7CAF1C3D6C);
+    if (result != 0 ) {
+        goto Release;
+    }
+	/* Регистрация статического компонента для работы с конечным автоматом */
+    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoFSM1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_5E7C610CB846447DB59A3C5A2C4F446F);
     if (result != 0 ) {
         goto Release;
     }
@@ -200,6 +184,12 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     }
     /* Регистрация статического компонента для работы со списком */
     result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoList1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_53884AFC93C448ECAA929C8D3A562281);
+    if (result != 0 ) {
+		/* Освобождение в случае ошибки */
+        goto Release;
+    }
+	 /* Регистрация статического компонента для работы со списком */
+    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoData1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_5A0F0DD57E6448EC9EE0E5D67572B47E);
     if (result != 0 ) {
         /* Освобождение в случае ошибки */
         goto Release;
@@ -237,10 +227,6 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
         goto Release;
     }
 
-    //pILayout = pIFileAffiliate->pVTbl->get_Layout(pIFileAffiliate);
-    //pILayout->pVTbl->QueryInterface(pILayout, &IID_IEcoLog1SimpleLayout, (void**) &pISimpleLayout);
-    //pISimpleLayout->pVTbl->set_Pattern(pISimpleLayout, "%m\n");
-    //pISimpleLayout->pVTbl->Release(pISimpleLayout);
     pILog->pVTbl->AddAffiliate(pILog, (IEcoLog1Affiliate*)pIFileAffiliate);
     pIFileAffiliate->pVTbl->Release(pIFileAffiliate);
 
@@ -257,8 +243,6 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     pILog->pVTbl->AddAffiliate(pILog, (IEcoLog1Affiliate*)pIConsoleAffiliate);
     pIConsoleAffiliate->pVTbl->Release(pIConsoleAffiliate);
 
-    pILog->pVTbl->Info(pILog, "Start tests!!!");
-
     /* Получение тестируемого интерфейса */
     result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoBRE1, 0, &IID_IEcoBRE1, (void**) &pIEcoBRE1);
     if (result != 0 || pIEcoBRE1 == 0) {
@@ -266,26 +250,48 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
         goto Release;
     }
 
+	pILog->pVTbl->Info(pILog, "=== Test 1: NFA Building ===");
+	TestNFABuilding(pILog, pIEcoBRE1, "abc", 6, 5);
+	TestNFABuilding(pILog, pIEcoBRE1, "a|b", 6, 6);
+	TestNFABuilding(pILog, pIEcoBRE1, "a*", 4, 5);
+	TestNFABuilding(pILog, pIEcoBRE1, "(ab)+", 6, 6);
+	TestNFABuilding(pILog, pIEcoBRE1, "[0-9]", 2, 1);
+	TestNFABuilding(pILog, pIEcoBRE1, "a.c", 6, 5);
+	TestNFABuilding(pILog, pIEcoBRE1, "(a|b)*c?", 12, 15);
+	TestNFABuilding(pILog, pIEcoBRE1, "abc|(c|(de))", 16, 17);
+	TestNFABuilding(pILog, pIEcoBRE1, "ab{2,}", 7, 7);
+	TestNFABuilding(pILog, pIEcoBRE1, "(a|b)(c|d)", 12, 13);
+	pILog->pVTbl->Info(pILog, "\n=== Test 1 Finished ===\n");
 
-    TestRegEx(pILog, pIEcoBRE1, "abc");
-
-    TestRegEx(pILog, pIEcoBRE1, "a|b");
-
-    TestRegEx(pILog, pIEcoBRE1, "a*");
-
-    TestRegEx(pILog, pIEcoBRE1, "(ab)+");
-
-    TestRegEx(pILog, pIEcoBRE1, "[0-9]");
-
-    TestRegEx(pILog, pIEcoBRE1, "a.c");
-
-    TestRegEx(pILog, pIEcoBRE1, "(a|b)*c?");
-
-    TestRegEx(pILog, pIEcoBRE1, "abc|(c|(de))");
-
-    TestRegEx(pILog, pIEcoBRE1, "ab{2,}");
-
-    pILog->pVTbl->Info(pILog, "\nTests finished.\n");
+	pILog->pVTbl->Info(pILog, "=== Test 2: IsMatch Test ===");
+	TestIsMatch(pILog, pIEcoBRE1, "abc", "abc", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "abc", "abd", 0);
+	TestIsMatch(pILog, pIEcoBRE1, "a|b", "a", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "a|b", "b", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "a|b", "c", 0);
+	TestIsMatch(pILog, pIEcoBRE1, "a*", "", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "a*", "aaa", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "a+", "a", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "a+", "aaaa", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "a+", "", 0);
+	TestIsMatch(pILog, pIEcoBRE1, "a?", "a", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "a?", "", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "a?", "aa", 0);
+	TestIsMatch(pILog, pIEcoBRE1, "[0-9]", "5", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "[0-9]", "a", 0);
+	TestIsMatch(pILog, pIEcoBRE1, "a.c", "abc", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "a.c", "abbc", 0);
+	TestIsMatch(pILog, pIEcoBRE1, "a.*c", "abbc", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "(ab)+", "ab", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "(ab)*", "", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "a{2,4}", "aa", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "a{2,4}", "aaaa", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "a{2,4}", "a", 0);
+	TestIsMatch(pILog, pIEcoBRE1, "a{2,4}", "aaaaa", 0);
+	TestIsMatch(pILog, pIEcoBRE1, "(a|b)*c?", "abc", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "(a|b)*c?", "ab", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "abc|(c|(de))", "de", 1);
+	pILog->pVTbl->Info(pILog, "\n=== Test 2 Finished ===\n");
 
 
 Release:
