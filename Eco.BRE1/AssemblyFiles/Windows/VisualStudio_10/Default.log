@@ -1,0 +1,7 @@
+2026-03-08 10:45:27,682391 INFO : === Test 5: Split Test === 
+2026-03-08 10:45:27,682391 INFO : 
+TEST: pattern - "abc|de|c", text - "abcfgrrjtjsdehfkkrhdcjdjrwo" 
+2026-03-08 10:45:27,682391 INFO : 	PASSED: Part 0:  expected: "fgrrjtjs",  got: "fgrrjtjs" 
+2026-03-08 10:45:27,682391 INFO : 	PASSED: Part 1:  expected: "hfkkrhd",  got: "hfkkrhd" 
+2026-03-08 10:45:27,682391 INFO : 	PASSED: Part 2:  expected: "jdjrwo",  got: "jdjrwo" 
+2026-03-08 10:45:27,682391 INFO : PASSED: All split parts match expected 

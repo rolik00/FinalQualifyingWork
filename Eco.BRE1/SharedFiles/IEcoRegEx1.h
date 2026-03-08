@@ -1,4 +1,4 @@
-/*
+ /*
  * <character encoding>
  *   Cyrillic (UTF-8 with signature) - Codepage 65001
  * </character encoding>
@@ -54,52 +54,52 @@ typedef struct IEcoRegEx1VTbl {
 
     /* IEcoRegEx1 */
 
+	/* IsMatch: Проверка наличия совпадения */
+    int16_t (ECOCALLMETHOD *IsMatch)(
+        /* in */ IEcoRegEx1Ptr_t me, 
+        /* in */ voidptr_t string,         /* Строка для поиска */
+        /* in */ uint32_t sizeInBytes,     /* Размер в байтах */
+        /* in */ uint32_t flags            /* Флаги кодировки и опции (например, CaseInsensitive) */
+    );
+
     /* Match: Поиск первого совпадения */
     int16_t (ECOCALLMETHOD *Match)(
         /* in */ IEcoRegEx1Ptr_t me, 
-        /* in */ voidptr_t str, 
+        /* in */ voidptr_t string, 
         /* in */ uint32_t sizeInBytes, 
         /* in */ uint32_t flags, 
 		/* out */ EcoRegEx1Match** pMatch
     );
 
-	 /* IsMatch: Проверка наличия совпадения */
-    int16_t (ECOCALLMETHOD *IsMatch)(
+    /* Matches: Возвращает итератор для всех совпадений */
+    int16_t (ECOCALLMETHOD *Matches)(
         /* in */ IEcoRegEx1Ptr_t me, 
-        /* in */ voidptr_t str,            /* Строка для поиска */
-        /* in */ uint32_t sizeInBytes,     /* Размер в байтах */
-        /* in */ uint32_t flags            /* Флаги кодировки и опции (например, CaseInsensitive) */
+        /* in */ voidptr_t str, 
+        /* in */ uint32_t sizeInBytes, 
+        /* in */ uint32_t flags, 
+        /* out */ IEcoRegEx1EnumMatchesPtr_t* ppEnum
     );
 
-    /* Matches: Возвращает итератор для всех совпадений */
-    //int16_t (ECOCALLMETHOD *Matches)(
-    //    /* in */ IEcoRegEx1Ptr_t me, 
-    //    /* in */ voidptr_t str, 
-    //    /* in */ uint32_t sizeInBytes, 
-    //    /* in */ uint32_t flags, 
-    //    /* out */ IEcoRegEx1EnumMatchesPtr_t* ppEnum
-    //);
-
     /* Split: Разделение строки по шаблону */
-    //int16_t (ECOCALLMETHOD *Split)(
-    //    /* in */ IEcoRegEx1Ptr_t me, 
-    //    /* in */ voidptr_t str, 
-    //    /* in */ uint32_t sizeInBytes, 
-    //    /* in */ uint32_t flags, 
-    //    /* out */ voidptr_t* ppEnumStrings /* Интерфейс перечислителя строк */
-    //);
+    int16_t (ECOCALLMETHOD *Split)(
+        /* in */ IEcoRegEx1Ptr_t me, 
+        /* in */ voidptr_t str, 
+        /* in */ uint32_t sizeInBytes, 
+        /* in */ uint32_t flags, 
+        /* out */ voidptr_t* ppEnumStrings /* Интерфейс перечислителя строк */
+    );
 
     /* Replace: Замена совпадений на новую подстроку */
-    //int16_t (ECOCALLMETHOD *Replace)(
-    //    /* in */ IEcoRegEx1Ptr_t me, 
-    //    /* in */ voidptr_t str, 
-    //    /* in */ uint32_t sizeInBytes, 
-    //   /* in */ voidptr_t replacement,    /* Строка замены */
-    //    /* in */ uint32_t repSizeInBytes,  /* Размер замены */
-    //    /* in */ uint32_t flags, 
-    //    /* out */ voidptr_t* ppResultStr,  /* Выходной буфер (выделяется компонентом) */
-    //    /* out */ uint32_t* pResSizeInBytes/* Размер полученного буфера */
-    //);
+    int16_t (ECOCALLMETHOD *Replace)(
+        /* in */ IEcoRegEx1Ptr_t me, 
+        /* in */ voidptr_t str, 
+        /* in */ uint32_t sizeInBytes, 
+        /* in */ voidptr_t replacement,    /* Строка замены */
+        /* in */ uint32_t repSizeInBytes,  /* Размер замены */
+        /* in */ uint32_t flags, 
+        /* out */ voidptr_t* ppResultStr,  /* Выходной буфер (выделяется компонентом) */
+        /* out */ uint32_t* pResSizeInBytes/* Размер полученного буфера */
+    );
 
 } IEcoRegEx1VTbl, *IEcoRegEx1VTblPtr_t;
 

@@ -26,6 +26,20 @@
 #include "IEcoBinaryTree1.h" 
 #include "IEcoFSM1.h"
 
+/* Структура для множества состояний */
+typedef struct StateSet {
+    int16_t* states;
+    uint32_t count;
+    uint32_t capacity;
+} StateSet;
+
+/* Структура для хранения результатов split */
+typedef struct SplitResult {
+        char** strings;
+        uint32_t count;
+        uint32_t capacity;
+} SplitResult;
+
 typedef struct CEcoBRE1RegEx_0E0B7D40* CEcoBRE1RegEx_0E0B7D40Ptr_t;
 
 typedef struct CEcoBRE1RegEx_0E0B7D40 {
@@ -59,6 +73,8 @@ typedef struct CEcoBRE1RegEx_0E0B7D40 {
 	IEcoFSM1* m_pFSM;  
 	IEcoFSM1StateMachine* m_pStateMachine;
 	IEcoFSM1State* m_pStartState;
+	
+	IEcoFSM1StateMachineVTbl* m_pVTblIStateMachine;
 
 } CEcoBRE1RegEx_0E0B7D40;
 

@@ -387,7 +387,6 @@ static int16_t ECOCALLMETHOD CEcoBRE1_0E0B7D40_CreateRegEx(
 
 	if (pRoot != 0) {
         result = pBuilder->pVTbl->Build(pBuilder, pRoot, ppIRegex);
-		pRoot->pVTbl->Release(pRoot);
     } else {
         result = -1;
     }

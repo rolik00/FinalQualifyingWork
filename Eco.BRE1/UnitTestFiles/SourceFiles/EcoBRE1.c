@@ -44,7 +44,7 @@
 void TestNFABuilding(IEcoLog1* pILog, IEcoBRE1* pBRE, voidptr_t pattern, int expectedStates, int expectedTransitions) {
     IEcoRegEx1* pRegEx = 0;
     int16_t result = 0;
-	CEcoBRE1RegEx_0E0B7D40* pImpl = 0;
+	IEcoFSM1StateMachine* pStateMachine;
 	IEcoList1* pStates = 0;
     IEcoList1* pTransitions = 0;
     uint32_t stateCount = 0;
@@ -60,27 +60,28 @@ void TestNFABuilding(IEcoLog1* pILog, IEcoBRE1* pBRE, voidptr_t pattern, int exp
 		return;
     }
 
-    pImpl = (CEcoBRE1RegEx_0E0B7D40*)pRegEx;
-    hasFSM = (pImpl->m_pStateMachine != 0);
-	if (!hasFSM) {
-        pILog->pVTbl->InfoFormat(pILog, "FAILED: NFA not built for pattern \"%s\"", pattern);
+    result = pRegEx->pVTbl->QueryInterface(pRegEx, &IID_IEcoFSM1StateMachine, (void**)&pStateMachine);
+    if (result != 0 || pStateMachine == 0) {
+        pILog->pVTbl->Info(pILog, "FAILED: No NFA state machine available");
         pRegEx->pVTbl->Release(pRegEx);
-		return;
+        return;
     }
 
-	pStates = pImpl->m_pStateMachine->pVTbl->get_States(pImpl->m_pStateMachine);
-    pTransitions = pImpl->m_pStateMachine->pVTbl->get_Transitions(pImpl->m_pStateMachine);
+	pStates = pStateMachine->pVTbl->get_States(pStateMachine);
+    pTransitions = pStateMachine->pVTbl->get_Transitions(pStateMachine);
         
     stateCount = pStates->pVTbl->Count(pStates);
     transCount = pTransitions->pVTbl->Count(pTransitions);
         
     if (stateCount != (uint32_t)expectedStates) {
 		pILog->pVTbl->InfoFormat(pILog, "FAILED: State count mismatch for pattern \"%s\". Expected: %d, Actual: %d", pattern, expectedStates, stateCount);
-	    return;
+	    pRegEx->pVTbl->Release(pRegEx);
+		return;
 	}
         
     if (transCount != (uint32_t)expectedTransitions) {
         pILog->pVTbl->InfoFormat(pILog, "FAILED: Transition count mismatch for pattern \"%s\". Expected: %d, Actual: %d", pattern, expectedTransitions, transCount);
+	    pRegEx->pVTbl->Release(pRegEx);
 	    return;
     }
    
@@ -113,6 +114,227 @@ void TestIsMatch(IEcoLog1* pILog, IEcoBRE1* pBRE, voidptr_t pattern, voidptr_t t
         pILog->pVTbl->InfoFormat(pILog, "FAILED: Expected %d, got %d", expected, isMatch);
     }
     
+    pRegEx->pVTbl->Release(pRegEx);
+}
+
+/* Тест функции Match */
+void TestMatch(IEcoLog1* pILog, IEcoBRE1* pBRE, voidptr_t pattern, voidptr_t text, int expectedIndex) {
+    IEcoRegEx1* pRegEx = 0;
+    int16_t result = 0;
+    EcoRegEx1Match* pMatch;
+    
+    pILog->pVTbl->InfoFormat(pILog, "\nTEST: pattern - \"%s\", text - \"%s\"", pattern, text);
+    
+    result = pBRE->pVTbl->CreateRegEx(pBRE, (voidptr_t)pattern, 0, 0, &pRegEx);
+    
+    if (result != 0 || pRegEx == 0) {
+        pILog->pVTbl->InfoFormat(pILog, "FAILED: Cannot create RegEx, error code: %d", result);
+        return;
+    }
+    
+	result = pRegEx->pVTbl->Match(pRegEx, (voidptr_t)text, 0, 0, &pMatch);
+	if (result == 0 && pMatch != 0) {
+        pILog->pVTbl->InfoFormat(pILog, "Recieved: index = %d, length = %u", pMatch->index, pMatch->length);
+        
+        if (pMatch->index == expectedIndex) {
+            pILog->pVTbl->Info(pILog, "Index check: PASSED");
+        } else {
+            pILog->pVTbl->InfoFormat(pILog, "Index check: FAILED Expected %d, got %d", expectedIndex, pMatch->index);
+        }
+	} else {
+        pILog->pVTbl->Info(pILog, "No match found");
+        if (expectedIndex == -1) {
+            pILog->pVTbl->Info(pILog, "No-match check: PASSED");
+        } else {
+            pILog->pVTbl->Info(pILog, "No-match check: FAILED");
+        }
+    }
+
+	if (pMatch) {
+		IEcoMemoryAllocator1* pIMem = ((CEcoBRE1RegEx_0E0B7D40*)pRegEx)->m_pIMem;
+		pIMem->pVTbl->Free(pIMem, pMatch);
+	}
+    
+    pRegEx->pVTbl->Release(pRegEx);
+}
+
+/* Тест функции Matches */
+void TestMatches(IEcoLog1* pILog, IEcoBRE1* pBRE, voidptr_t pattern, voidptr_t text, int expectedCount, int expectedIndices[], int expectedLengths[]) {
+    IEcoRegEx1* pRegEx = 0;
+    IEcoRegEx1EnumMatchesPtr_t pEnum = 0;
+    int16_t result = 0;
+    EcoRegEx1Match matches[20];
+    uint32_t fetched = 0;
+    uint32_t totalMatches = 0;
+    int passed = 1;
+    
+    pILog->pVTbl->InfoFormat(pILog, "\nTEST: pattern - \"%s\", text - \"%s\"", pattern, text);
+    
+    result = pBRE->pVTbl->CreateRegEx(pBRE, (voidptr_t)pattern, 0, 0, &pRegEx);
+    
+    if (result != 0 || pRegEx == 0) {
+        pILog->pVTbl->InfoFormat(pILog, "FAILED: Cannot create RegEx, error code: %d", result);
+        return;
+    }
+    
+    result = pRegEx->pVTbl->Matches(pRegEx, (voidptr_t)text, 0, 0, &pEnum);
+    
+    if (result != 0 || pEnum == 0) {
+        if (expectedCount == 0 && result == ERR_ECO_SUCCESES) {
+            pILog->pVTbl->Info(pILog, "PASSED: No matches found (expected empty result)");
+        } else {
+            pILog->pVTbl->InfoFormat(pILog, "FAILED: Matches returned error code: %d", result);
+        }
+        pRegEx->pVTbl->Release(pRegEx);
+        return;
+    }
+    
+    while (totalMatches < (uint32_t)expectedCount && passed) {
+        result = pEnum->pVTbl->Next(pEnum, 1, &matches[totalMatches], &fetched);
+        if (result != 0 || fetched == 0) {
+            break;
+        }
+        
+        if (matches[totalMatches].index != (uint32_t)expectedIndices[totalMatches]) {
+            pILog->pVTbl->InfoFormat(pILog, "FAILED: Match %d index mismatch - Expected: %d, Actual: %u", totalMatches + 1, expectedIndices[totalMatches], matches[totalMatches].index);
+            passed = 0;
+        }
+        
+        if (matches[totalMatches].length != (uint32_t)expectedLengths[totalMatches]) {
+            pILog->pVTbl->InfoFormat(pILog, "FAILED: Match %d length mismatch - Expected: %d, Actual: %u", totalMatches + 1, expectedLengths[totalMatches], matches[totalMatches].length);
+            passed = 0;
+        }
+        
+        pILog->pVTbl->InfoFormat(pILog, "  Match %d: index = %d, length = %u", totalMatches + 1, matches[totalMatches].index, matches[totalMatches].length);
+        
+        totalMatches++;
+    }
+    
+    if (passed) {
+        result = pEnum->pVTbl->Next(pEnum, 1, matches, &fetched);
+        if (fetched != 0) {
+            pILog->pVTbl->InfoFormat(pILog, "FAILED: Found unexpected extra match at index %u", matches[0].index);
+            passed = 0;
+        }
+    }
+    
+    if (totalMatches != (uint32_t)expectedCount) {
+        pILog->pVTbl->InfoFormat(pILog, "FAILED: Match count mismatch - Expected: %d, Actual: %u", expectedCount, totalMatches);
+        passed = 0;
+    }
+    
+    if (passed) {
+        pILog->pVTbl->Info(pILog, "PASSED: All matches verified successfully");
+    }
+    
+    if (pEnum != 0) {
+        pEnum->pVTbl->Release(pEnum);
+    }
+    
+    pRegEx->pVTbl->Release(pRegEx);
+}
+
+/* Тест функции Split */
+void TestSplit(IEcoLog1* pILog, IEcoBRE1* pBRE, voidptr_t pattern, voidptr_t text, int expectedCount, const char* expectedParts[]) {
+    IEcoRegEx1* pRegEx = 0;
+    int16_t result = 0;
+    voidptr_t pResult = 0;
+    SplitResult* pSplit = 0;
+    uint32_t i = 0;
+    int passed = 1;
+	IEcoMemoryAllocator1* pIMem;
+	char* got;
+    
+    pILog->pVTbl->InfoFormat(pILog, "\nTEST: pattern - \"%s\", text - \"%s\"", pattern, text);
+    
+    result = pBRE->pVTbl->CreateRegEx(pBRE, (voidptr_t)pattern, 0, 0, &pRegEx);
+    
+    if (result != 0 || pRegEx == 0) {
+        pILog->pVTbl->InfoFormat(pILog, "FAILED: Cannot create RegEx, error code: %d", result);
+        return;
+    }
+    
+	result = pRegEx->pVTbl->Split(pRegEx, (voidptr_t)text, 0, 0, &pResult);
+	if (result != 0 || pResult == 0) {
+        pILog->pVTbl->InfoFormat(pILog, "FAILED: Split returned error %d or null result", result);
+        pRegEx->pVTbl->Release(pRegEx);
+        return;
+    }
+
+	pSplit = (SplitResult*)pResult;
+
+    if (pSplit->count != (uint32_t)expectedCount) {
+        pILog->pVTbl->InfoFormat(pILog, "FAILED: Parts count mismatch. Expected %d, got %u", expectedCount, pSplit->count);
+        passed = 0;
+    }
+
+	if (passed) {
+        for (i = 0; i < pSplit->count; i++) {
+            got = pSplit->strings[i] ? pSplit->strings[i] : "";
+            if (strcmp(got, expectedParts[i]) != 0) {
+                pILog->pVTbl->InfoFormat(pILog, "FAILED: Part %u mismatch:  expected: \"%s\",  got: \"%s\"", i, expectedParts[i], got);
+                passed = 0;
+                break;
+            } else {
+				pILog->pVTbl->InfoFormat(pILog, "	PASSED: Part %u:  expected: \"%s\",  got: \"%s\"", i, expectedParts[i], got);  
+			}
+        }
+    }
+
+	if (passed) {
+        pILog->pVTbl->Info(pILog, "PASSED: All split parts match expected");
+    }
+
+	if (pSplit) {
+        pIMem = ((CEcoBRE1RegEx_0E0B7D40*)pRegEx)->m_pIMem;
+        for (i = 0; i < pSplit->count; i++) {
+            if (pSplit->strings[i]) {
+                pIMem->pVTbl->Free(pIMem, pSplit->strings[i]);
+            }
+        }
+        pIMem->pVTbl->Free(pIMem, pSplit->strings);
+        pIMem->pVTbl->Free(pIMem, pSplit);
+    }
+    
+    pRegEx->pVTbl->Release(pRegEx);
+}
+
+/* Тест функции Replace */
+void TestReplace(IEcoLog1* pILog, IEcoBRE1* pBRE, voidptr_t pattern, voidptr_t text, voidptr_t replacement, const char* expectedResult) {
+    IEcoRegEx1* pRegEx = 0;
+    int16_t result = 0;
+    voidptr_t pResultStr = 0;
+    uint32_t resSize = 0;
+    char* got = 0;
+
+    pILog->pVTbl->InfoFormat(pILog, "\nTEST: pattern=\"%s\", replacement=\"%s\", text=\"%s\"", pattern, replacement, text);
+
+    result = pBRE->pVTbl->CreateRegEx(pBRE, pattern, 0, 0, &pRegEx);
+    if (result != 0 || pRegEx == 0) {
+        pILog->pVTbl->InfoFormat(pILog, "FAILED: CreateRegEx failed, error=%d", result);
+        return;
+    }
+
+    result = pRegEx->pVTbl->Replace(pRegEx, text, 0, replacement, 0, 0, &pResultStr, &resSize);
+
+    if (result != 0 || pResultStr == 0) {
+        pILog->pVTbl->InfoFormat(pILog, "FAILED: Replace failed, error=%d", result);
+        pRegEx->pVTbl->Release(pRegEx);
+        return;
+    }
+
+    got = (char*)pResultStr;
+    if (strcmp(got, expectedResult) == 0) {
+        pILog->pVTbl->InfoFormat(pILog, "PASSED: result = \"%s\"", got);
+    } else {
+        pILog->pVTbl->InfoFormat(pILog, "FAILED: expected \"%s\", got \"%s\"", expectedResult, got);
+    }
+
+    if (pResultStr) {
+        IEcoMemoryAllocator1* pIMem = ((CEcoBRE1RegEx_0E0B7D40*)pRegEx)->m_pIMem;
+        pIMem->pVTbl->Free(pIMem, pResultStr);
+    }
+
     pRegEx->pVTbl->Release(pRegEx);
 }
 
@@ -250,7 +472,7 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
         goto Release;
     }
 
-	pILog->pVTbl->Info(pILog, "=== Test 1: NFA Building ===");
+	/*pILog->pVTbl->Info(pILog, "=== Test 1: NFA Building ===");
 	TestNFABuilding(pILog, pIEcoBRE1, "abc", 6, 5);
 	TestNFABuilding(pILog, pIEcoBRE1, "a|b", 6, 6);
 	TestNFABuilding(pILog, pIEcoBRE1, "a*", 4, 5);
@@ -261,14 +483,15 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
 	TestNFABuilding(pILog, pIEcoBRE1, "abc|(c|(de))", 16, 17);
 	TestNFABuilding(pILog, pIEcoBRE1, "ab{2,}", 7, 7);
 	TestNFABuilding(pILog, pIEcoBRE1, "(a|b)(c|d)", 12, 13);
-	pILog->pVTbl->Info(pILog, "\n=== Test 1 Finished ===\n");
+	pILog->pVTbl->Info(pILog, "\n=== Test 1 Finished ===\n");*/
 
-	pILog->pVTbl->Info(pILog, "=== Test 2: IsMatch Test ===");
+	/*pILog->pVTbl->Info(pILog, "=== Test 2: IsMatch Test ===");
 	TestIsMatch(pILog, pIEcoBRE1, "abc", "abc", 1);
 	TestIsMatch(pILog, pIEcoBRE1, "abc", "abd", 0);
 	TestIsMatch(pILog, pIEcoBRE1, "a|b", "a", 1);
 	TestIsMatch(pILog, pIEcoBRE1, "a|b", "b", 1);
 	TestIsMatch(pILog, pIEcoBRE1, "a|b", "c", 0);
+	TestIsMatch(pILog, pIEcoBRE1, "a|b|c", "c", 1);
 	TestIsMatch(pILog, pIEcoBRE1, "a*", "", 1);
 	TestIsMatch(pILog, pIEcoBRE1, "a*", "aaa", 1);
 	TestIsMatch(pILog, pIEcoBRE1, "a+", "a", 1);
@@ -279,6 +502,8 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
 	TestIsMatch(pILog, pIEcoBRE1, "a?", "aa", 0);
 	TestIsMatch(pILog, pIEcoBRE1, "[0-9]", "5", 1);
 	TestIsMatch(pILog, pIEcoBRE1, "[0-9]", "a", 0);
+	TestIsMatch(pILog, pIEcoBRE1, "[0-9]{2}", "93", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "[0-9]{2}", "101", 0);
 	TestIsMatch(pILog, pIEcoBRE1, "a.c", "abc", 1);
 	TestIsMatch(pILog, pIEcoBRE1, "a.c", "abbc", 0);
 	TestIsMatch(pILog, pIEcoBRE1, "a.*c", "abbc", 1);
@@ -291,7 +516,114 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
 	TestIsMatch(pILog, pIEcoBRE1, "(a|b)*c?", "abc", 1);
 	TestIsMatch(pILog, pIEcoBRE1, "(a|b)*c?", "ab", 1);
 	TestIsMatch(pILog, pIEcoBRE1, "abc|(c|(de))", "de", 1);
-	pILog->pVTbl->Info(pILog, "\n=== Test 2 Finished ===\n");
+	TestIsMatch(pILog, pIEcoBRE1, "abc|(c|(de))", "abc", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "abc|(c|(de))", "c", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "abc|(c|(de))", "cde", 0);
+	TestIsMatch(pILog, pIEcoBRE1, "a+b+", "aaabbb", 1);
+	TestIsMatch(pILog, pIEcoBRE1, "a+b+", "xaaabbbx", 0);
+	TestIsMatch(pILog, pIEcoBRE1, "a+b+", "xaaabbb", 0);
+	TestIsMatch(pILog, pIEcoBRE1, "a+b+", "aaabbbx", 0);
+	TestIsMatch(pILog, pIEcoBRE1, "a+b+", "aaaxbbb", 0);
+	pILog->pVTbl->Info(pILog, "\n=== Test 2 Finished ===\n");*/
+
+	/*pILog->pVTbl->Info(pILog, "=== Test 3: Match Test ===");
+	TestMatch(pILog, pIEcoBRE1, "abc|(c|(de))", "cde", 0);
+	TestMatch(pILog, pIEcoBRE1, "abc|(c|(de))", "ade", 1);
+	TestMatch(pILog, pIEcoBRE1, "abc|(c|(de))", "abc", 0);   
+	TestMatch(pILog, pIEcoBRE1, "a.c", "kabc", 1);
+	TestMatch(pILog, pIEcoBRE1, "a.c", "abbc", -1);     
+	TestMatch(pILog, pIEcoBRE1, "a.*c", "abbc", 0);
+	TestMatch(pILog, pIEcoBRE1, "ab{2,4}", "aaaaaabbbb", 5);
+	TestMatch(pILog, pIEcoBRE1, "a+b+", "aaaxbbb", -1);
+	TestMatch(pILog, pIEcoBRE1, "a+b+", "xaaabbbx", 1);
+	pILog->pVTbl->Info(pILog, "\n=== Test 3 Finished ===\n");*/
+
+	/*pILog->pVTbl->Info(pILog, "=== Test 4: Matches Test ===");
+	{
+		int indices[] = {0, 11, 20};  
+		int lengths[] = {3, 2, 1};
+		TestMatches(pILog, pIEcoBRE1, "abc|de|c", "abcfgrrjtjsdehfkkrhdcjdjrwo", 3, indices, lengths);
+	}
+	{
+		int indices[] = {3, 8};
+		int lengths[] = {5, 3};
+		TestMatches(pILog, pIEcoBRE1, "ab{2,4}|b+", "aaaabbbbbbb", 2, indices, lengths);
+	}
+	{
+		int indices[] = {0, 2};
+		int lengths[] = {2, 2};
+		TestMatches(pILog, pIEcoBRE1, "aa", "aaaa", 2, indices, lengths);
+	}
+	{
+		int indices[] = {3, 9, 15};
+		int lengths[] = {3, 3, 3};
+		TestMatches(pILog, pIEcoBRE1, "[0-9]+", "abc123def456ghi789", 3, indices, lengths);
+	}
+	{
+		int indices[] = {0, 2, 4};
+		int lengths[] = {2, 2, 1};
+		TestMatches(pILog, pIEcoBRE1, "aa|a", "aaaaa", 3, indices, lengths);
+    }
+	{
+		int indices[] = {0};
+		int lengths[] = {3};
+		TestMatches(pILog, pIEcoBRE1, "a{2,3}", "aaaa", 1, indices, lengths);
+	}
+	{
+		TestMatches(pILog, pIEcoBRE1, "xyz", "abcdef", 0, 0, 0);
+    }
+	{
+		int indices[] = {3};
+		int lengths[] = {3};
+		TestMatches(pILog, pIEcoBRE1, "abc", "ABCabcAbc", 1, indices, lengths);
+	}
+	{
+		int indices[] = {0, 5, 15};
+		int lengths[] = {4, 5, 4};
+		TestMatches(pILog, pIEcoBRE1, "[A-Z][a-z]+", "John Smith and Jane DOE", 3, indices, lengths);
+	}
+	{
+		int indices[] = {0};
+		int lengths[] = {0};
+		TestMatches(pILog, pIEcoBRE1, "a*", "", 1, indices, lengths);
+	}
+	pILog->pVTbl->Info(pILog, "\n=== Test 4 Finished ===\n");*/
+
+    /*pILog->pVTbl->Info(pILog, "=== Test 5: Split Test ===");
+	{
+		const char* expected[] = {"fgrrjtjs", "hfkkrhd", "jdjrwo"};
+		TestSplit(pILog, pIEcoBRE1, "abc|de|c", "abcfgrrjtjsdehfkkrhdcjdjrwo", 3, expected);
+	}
+	{
+		const char* expected[] = {"abc", "def", "ghi"};
+		TestSplit(pILog, pIEcoBRE1, "[0-9]+", "abc123def456ghi789", 3, expected);
+	}
+	{
+		const char* expected[] = {""};
+		TestSplit(pILog, pIEcoBRE1, "aa", "aaaa", 1, expected);
+	}
+	{
+		const char* expected[] = {"abcdef"};
+		TestSplit(pILog, pIEcoBRE1, "xyz", "abcdef", 1, expected);
+	}
+	{
+		const char* expected[] = {"ABC", "Abc"};
+		TestSplit(pILog, pIEcoBRE1, "abc", "ABCabcAbc", 2, expected);
+	}
+	{
+		const char* expected[] = {" ", " and ", " DOE"};
+		TestSplit(pILog, pIEcoBRE1, "[A-Z][a-z]+", "John Smith and Jane DOE", 3, expected);
+	}
+	pILog->pVTbl->Info(pILog, "\n=== Test 5 Finished ===\n");*/
+
+	pILog->pVTbl->Info(pILog, "=== Test 6: Replace Test ===");
+	TestReplace(pILog, pIEcoBRE1, "abc|de|c", "abcfgrrjtjsdehfkkrhdcjdjrwo", "K", "KfgrrjtjsKhfkkrhdKjdjrwo");          
+	TestReplace(pILog, pIEcoBRE1, "world", "Hello world, world is beautiful", "earth", "Hello earth, earth is beautiful");
+    TestReplace(pILog, pIEcoBRE1, "xyz", "abcdef", "D", "abcdef"); 
+	TestReplace(pILog, pIEcoBRE1, "[0-9]+", "abc123def456ghi789", "KK", "abcKKdefKKghiKK");
+	TestReplace(pILog, pIEcoBRE1, "a+", "abbbsaaabbaabaaaaaa", "L", "LbbbsLbbLbL");
+	TestReplace(pILog, pIEcoBRE1, "a+", "aaa", "", "");
+	pILog->pVTbl->Info(pILog, "\n=== Test 6 Finished ===\n");
 
 
 Release:

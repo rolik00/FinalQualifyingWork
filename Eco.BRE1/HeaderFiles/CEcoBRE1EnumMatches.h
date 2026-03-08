@@ -52,6 +52,10 @@ typedef struct CEcoBRE1EnumMatches_0E0B7D40 {
     /* Instance data */
     char_t* m_Name;
 
+	EcoRegEx1Match* m_matches;
+    uint32_t        m_count;
+    uint32_t        m_current;
+
 } CEcoBRE1EnumMatches_0E0B7D40;
 
 #endif /* __C_ECO_BRE_1_ENUM_MATCHES_H__ */

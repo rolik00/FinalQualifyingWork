@@ -116,18 +116,120 @@ static uint32_t ECOCALLMETHOD CEcoBRE1EnumMatches_0E0B7D40_Release(/* in */ IEco
  * </summary>
  *
  * <description>
- *   Function
+ *   Получает следующие cMatchs совпадений из перечислителя
  * </description>
  *
  */
 static int16_t ECOCALLMETHOD CEcoBRE1EnumMatches_0E0B7D40_Next(/* in */ IEcoRegEx1EnumMatchesPtr_t me, /* in */ uint32_t cMatchs, /* out */ struct EcoRegEx1Match *rgcd, /* out */ uint32_t *pcFetched) {
+    CEcoBRE1EnumMatches_0E0B7D40* self = (CEcoBRE1EnumMatches_0E0B7D40*)me;
+    uint32_t can_fetch, i;
+
+    if (!self || !rgcd) return ERR_ECO_POINTER;
+    if (pcFetched) *pcFetched = 0;
+
+    if (self->m_current >= self->m_count) {
+        return 0;
+    }
+
+    can_fetch = self->m_count - self->m_current;
+    if (can_fetch > cMatchs) can_fetch = cMatchs;
+
+    for (i = 0; i < can_fetch; i++) {
+        rgcd[i] = self->m_matches[self->m_current + i];
+    }
+
+    self->m_current += can_fetch;
+    if (pcFetched) *pcFetched = can_fetch;
+
+    return ERR_ECO_SUCCESES;
+}
+
+/*
+ *
+ * <summary>
+ *   Skip Function
+ * </summary>
+ *
+ * <description>
+ *   Пропускает указанное количество совпадений в перечислителе
+ * </description>
+ *
+ */
+static int16_t ECOCALLMETHOD CEcoBRE1EnumMatches_0E0B7D40_Skip(/* in */ IEcoRegEx1EnumMatchesPtr_t me, /* in */ uint32_t cMatchs) {
     CEcoBRE1EnumMatches_0E0B7D40* pCMe = (CEcoBRE1EnumMatches_0E0B7D40*)me;
-    int16_t index = 0;
 
     /* Pointer Validation */
     if (me == 0) {
         return ERR_ECO_POINTER;
     }
+
+    /* Здесь должна быть реализация пропуска элементов */
+    
+    return ERR_ECO_SUCCESES;
+}
+
+/*
+ *
+ * <summary>
+ *   Reset Function
+ * </summary>
+ *
+ * <description>
+ *   Сбрасывает перечислитель в начальное положение
+ * </description>
+ *
+ */
+static int16_t ECOCALLMETHOD CEcoBRE1EnumMatches_0E0B7D40_Reset(/* in */ IEcoRegEx1EnumMatchesPtr_t me) {
+    CEcoBRE1EnumMatches_0E0B7D40* pCMe = (CEcoBRE1EnumMatches_0E0B7D40*)me;
+
+    /* Pointer Validation */
+    if (me == 0) {
+        return ERR_ECO_POINTER;
+    }
+
+    /* Здесь должна быть реализация сброса позиции */
+    
+    return ERR_ECO_SUCCESES;
+}
+
+/*
+ *
+ * <summary>
+ *   Clone Function
+ * </summary>
+ *
+ * <description>
+ *   Создает копию перечислителя
+ * </description>
+ *
+ */
+static int16_t ECOCALLMETHOD CEcoBRE1EnumMatches_0E0B7D40_Clone(/* in */ IEcoRegEx1EnumMatchesPtr_t me, /* out */ IEcoRegEx1EnumMatchesPtr_t* ppEnum) {
+    CEcoBRE1EnumMatches_0E0B7D40* pCMe = (CEcoBRE1EnumMatches_0E0B7D40*)me;
+    CEcoBRE1EnumMatches_0E0B7D40* pNewEnum = 0;
+
+    /* Pointer Validation */
+    if (me == 0 || ppEnum == 0) {
+        return ERR_ECO_POINTER;
+    }
+
+    *ppEnum = 0;
+
+    pNewEnum = (CEcoBRE1EnumMatches_0E0B7D40*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(CEcoBRE1EnumMatches_0E0B7D40));
+    if (pNewEnum == 0) {
+        return -1;
+    }
+
+    memcpy(pNewEnum, pCMe, sizeof(CEcoBRE1EnumMatches_0E0B7D40));
+    
+    pNewEnum->m_cRef = 1;
+    if (pNewEnum->m_pISys != 0) {
+        pNewEnum->m_pISys->pVTbl->AddRef(pNewEnum->m_pISys);
+    }
+    if (pNewEnum->m_pIMem != 0) {
+        pNewEnum->m_pIMem->pVTbl->AddRef(pNewEnum->m_pIMem);
+    }
+
+    *ppEnum = (IEcoRegEx1EnumMatchesPtr_t)pNewEnum;
 
     return ERR_ECO_SUCCESES;
 }
@@ -221,6 +323,10 @@ static void ECOCALLMETHOD deleteCEcoBRE1EnumMatches_0E0B7D40(/* in */ CEcoBRE1En
     if (pCMe != 0 ) {
         pIMem = pCMe->m_pIMem;
         /* Freeing */
+		if (pCMe->m_matches != 0) {
+            pIMem->pVTbl->Free(pIMem, pCMe->m_matches);
+            pCMe->m_matches = 0;
+        }
         if ( pCMe->m_Name != 0 ) {
             pIMem->pVTbl->Free(pIMem, pCMe->m_Name);
         }
@@ -238,9 +344,9 @@ IEcoRegEx1EnumMatchesVTbl g_x784F264DDE1444F4B1FF94430059B13BVTbl_0E0B7D40 = {
     CEcoBRE1EnumMatches_0E0B7D40_AddRef,
     CEcoBRE1EnumMatches_0E0B7D40_Release,
     CEcoBRE1EnumMatches_0E0B7D40_Next,
-    0,
-    0,
-    0
+    CEcoBRE1EnumMatches_0E0B7D40_Skip,
+    CEcoBRE1EnumMatches_0E0B7D40_Reset,
+    CEcoBRE1EnumMatches_0E0B7D40_Clone
 };
 
 
@@ -253,5 +359,8 @@ CEcoBRE1EnumMatches_0E0B7D40 g_xCEcoBRE1EnumMatches_0E0B7D40 = {
     1, /* m_cRef */
     0, /* m_pISys */
     0, /* m_pISys */
-    0  /* m_Name */
+    0, /* m_Name */
+	0, /* m_matches */
+    0, /* m_count */
+    0  /* m_current */
 };

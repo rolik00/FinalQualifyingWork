@@ -403,7 +403,6 @@ static IEcoBinaryTree1NodePtr_t ECOCALLMETHOD CEcoBRE1Builder_0E0B7D40_CreateGro
         pNode = CreateNodeWithData(pCMe, pData);
         if (pNode && child) {
             pCMe->m_pBinaryTree->pVTbl->InsertNode(pCMe->m_pBinaryTree, pNode, child);
-			child->pVTbl->Release(child);
 		}
     }
     return pNode;
@@ -456,7 +455,7 @@ static int16_t CreateSymbolTransition(NFABuildContext* pCtx,
     IEcoFSM1Event* pEvent = pCtx->pStateMachine->pVTbl->AddEvent(
         pCtx->pStateMachine,
         "literal",
-        symbol,   
+        (int16_t)symbol,   
         0    
     );
     
@@ -464,7 +463,7 @@ static int16_t CreateSymbolTransition(NFABuildContext* pCtx,
     
     pSymbolSet = pEvent->pVTbl->AddSymbolSet(pEvent, "lit");
     if (pSymbolSet) {
-        pSymbolSet->pVTbl->AddSymbol(pSymbolSet, (byte_t*)&symbol, 8, 0, 0);
+        pSymbolSet->pVTbl->AddSymbolRange(pSymbolSet, symbol, symbol, 0);
     }
     
     pCtx->pStateMachine->pVTbl->AddTransition(
@@ -484,8 +483,7 @@ static int16_t CreateAnyCharTransition(NFABuildContext* pCtx,
                                        IEcoFSM1State* from,
                                        IEcoFSM1State* to) {
 	IEcoFL1SymbolSet* pSymbolSet = 0;
-	uint32_t dummy = 0;
-    IEcoFSM1Event* pEvent = pCtx->pStateMachine->pVTbl->AddEvent(
+	IEcoFSM1Event* pEvent = pCtx->pStateMachine->pVTbl->AddEvent(
         pCtx->pStateMachine,
         "anychar",
         256, 
@@ -497,8 +495,7 @@ static int16_t CreateAnyCharTransition(NFABuildContext* pCtx,
     pSymbolSet = pEvent->pVTbl->AddSymbolSet(pEvent, "any");
     if (pSymbolSet) {
         pSymbolSet->pVTbl->set_Complement(pSymbolSet, 1);
-		pSymbolSet->pVTbl->AddSymbol(pSymbolSet, (byte_t*)&dummy, 8, 0, 0);
-    }
+	}
     
     pCtx->pStateMachine->pVTbl->AddTransition(
         pCtx->pStateMachine,
