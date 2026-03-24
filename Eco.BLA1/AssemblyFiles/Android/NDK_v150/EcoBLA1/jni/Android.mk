@@ -1,0 +1,33 @@
+LOCAL_PATH:= $(call my-dir)
+
+#
+# Eco.BLA1
+#
+include $(CLEAR_VARS)
+
+LOCAL_C_INCLUDES := $(ECO_FRAMEWORK)/Eco.Core1/SharedFiles
+LOCAL_C_INCLUDES += $(ECO_FRAMEWORK)/Eco.InterfaceBus1/SharedFiles
+LOCAL_C_INCLUDES += $(ECO_FRAMEWORK)/Eco.MemoryManager1/SharedFiles
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../../HeaderFiles
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../../SharedFiles
+TARGET_PLATFORM := android-15
+TARGET_OUT := $(LOCAL_PATH)/../../../../../BuildFiles/Android/$(TARGET_ARCH_ABI)/$(CONFIGURATION)
+LOCAL_SRC_FILES := ../../../../../SourceFiles/CEcoBLA1.c \
+../../../../../SourceFiles/CEcoBLA1Factory.c
+
+ifeq ($(TARGET_LINK),0)
+
+LOCAL_MODULE := lib88DD94592E7C48BAB381EAA0F82A88F6
+LOCAL_CFLAGS := -std=c99 -DECO_LIB -DECO_ANDROID -DUGUID_UTILITY -D__ANDROID__
+
+include $(BUILD_STATIC_LIBRARY)
+
+else
+
+LOCAL_MODULE := 88DD94592E7C48BAB381EAA0F82A88F6
+LOCAL_CFLAGS := -std=c99 -DECO_DLL -DECO_ANDROID -DUGUID_UTILITY -D__ANDROID__
+LOCAL_LDLIBS := -latomic
+
+include $(BUILD_SHARED_LIBRARY)
+
+endif

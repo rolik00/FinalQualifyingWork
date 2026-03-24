@@ -1,0 +1,53 @@
+﻿Build started 19.03.2026 11:20:10.
+     1>Project "D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BLA1\AssemblyFiles\Windows\VS_v100\EcoBLA1.vcxproj" on node 2 (rebuild target(s)).
+     1>_PrepareForClean:
+         Deleting file "EcoBLA1\DynamicDebug\EcoBLA1.lastbuildstate".
+       InitializeBuildStatus:
+         Creating "EcoBLA1\DynamicDebug\EcoBLA1.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I..\..\..\HeaderFiles /I..\..\..\SharedFiles /ID:\Downloads\Eco.Framework\Eco.String1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BNF1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FSM1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BRE1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.List1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Log1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Data1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.DateTime1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Core1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.InterfaceBus1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.System1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.MemoryManager1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FileSystemManagement1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BinaryTree1\SharedFiles /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D ECO_WINDOWS /D ECO_WIN32 /D ECO_X86_32 /D UGUID_UTILITY /D ECO_DLL /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"EcoBLA1\DynamicDebug\\" /Fd"EcoBLA1\DynamicDebug\vc100.pdb" /Gz /TC /analyze- /errorReport:prompt ..\..\..\SourceFiles\CEcoBLA1.c ..\..\..\SourceFiles\CEcoBLA1Factory.c ..\..\..\SourceFiles\CEcoBLA1Scanner.c ..\..\..\SourceFiles\CEcoBLA1Token.c ..\..\..\SourceFiles\CEcoBLD1.c ..\..\..\SourceFiles\CEcoBLR1BNF.c ..\..\..\SourceFiles\CEcoBLR1Direct.c ..\..\..\SourceFiles\CEcoBLR1FSM.c ..\..\..\SourceFiles\CEcoBLR1RE.c
+         CEcoBLR1RE.c
+     1>d:\myproject\fqw\eco.toolchain\eco.framework\eco.bla1\sourcefiles\cecoblr1re.c(243): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 d:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>d:\myproject\fqw\eco.toolchain\eco.framework\eco.bla1\sourcefiles\cecoblr1re.c(248): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 d:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>d:\myproject\fqw\eco.toolchain\eco.framework\eco.bla1\sourcefiles\cecoblr1re.c(324): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 d:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>d:\myproject\fqw\eco.toolchain\eco.framework\eco.bla1\sourcefiles\cecoblr1re.c(588): warning C4022: 'function through pointer' : pointer mismatch for actual parameter 2
+     1>d:\myproject\fqw\eco.toolchain\eco.framework\eco.bla1\sourcefiles\cecoblr1re.c(675): warning C4566: character represented by universal-character-name '\u03B5' cannot be represented in the current code page (1251)
+     1>d:\myproject\fqw\eco.toolchain\eco.framework\eco.bla1\sourcefiles\cecoblr1re.c(854): warning C4133: 'function' : incompatible types - from 'IEcoList1 *' to 'IEcoSystem1Ptr_t'
+     1>d:\myproject\fqw\eco.toolchain\eco.framework\eco.bla1\sourcefiles\cecoblr1re.c(860): warning C4133: 'function' : incompatible types - from 'IEcoBRE1 *' to 'IEcoSystem1Ptr_t'
+     1>d:\myproject\fqw\eco.toolchain\eco.framework\eco.bla1\sourcefiles\cecoblr1re.c(863): warning C4133: 'function' : incompatible types - from 'IEcoFSM1StateMachine *' to 'IEcoSystem1Ptr_t'
+         CEcoBLR1FSM.c
+         CEcoBLR1Direct.c
+         CEcoBLR1BNF.c
+         CEcoBLD1.c
+         CEcoBLA1Token.c
+         CEcoBLA1Scanner.c
+         CEcoBLA1Factory.c
+         CEcoBLA1.c
+         Generating Code...
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(990,5): warning MSB8012: TargetPath(D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BLA1\AssemblyFiles\Windows\VS_v100\EcoBLA1\DynamicDebug\88DD94592E7C48BAB381EAA0F82A88F6.dll) does not match the Linker's OutputFile property value (D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BLA1\BuildFiles\Windows\x86\DynamicDebug\88DD94592E7C48BAB381EAA0F82A88F6.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+       Link:
+         D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"..\..\..\BuildFiles\Windows\x86\DynamicDebug\88DD94592E7C48BAB381EAA0F82A88F6.dll" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"EcoBLA1\DynamicDebug\88DD94592E7C48BAB381EAA0F82A88F6.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BLA1\AssemblyFiles\Windows\VS_v100\EcoBLA1\DynamicDebug\88DD94592E7C48BAB381EAA0F82A88F6.pdb" /SUBSYSTEM:WINDOWS /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BLA1\AssemblyFiles\Windows\VS_v100\EcoBLA1\DynamicDebug\88DD94592E7C48BAB381EAA0F82A88F6.lib" /MACHINE:X86 /DLL EcoBLA1\DynamicDebug\CEcoBLA1.obj
+         EcoBLA1\DynamicDebug\CEcoBLA1Factory.obj
+         EcoBLA1\DynamicDebug\CEcoBLA1Scanner.obj
+         EcoBLA1\DynamicDebug\CEcoBLA1Token.obj
+         EcoBLA1\DynamicDebug\CEcoBLD1.obj
+         EcoBLA1\DynamicDebug\CEcoBLR1BNF.obj
+         EcoBLA1\DynamicDebug\CEcoBLR1Direct.obj
+         EcoBLA1\DynamicDebug\CEcoBLR1FSM.obj
+         EcoBLA1\DynamicDebug\CEcoBLR1RE.obj
+            Creating library D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BLA1\AssemblyFiles\Windows\VS_v100\EcoBLA1\DynamicDebug\88DD94592E7C48BAB381EAA0F82A88F6.lib and object D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BLA1\AssemblyFiles\Windows\VS_v100\EcoBLA1\DynamicDebug\88DD94592E7C48BAB381EAA0F82A88F6.exp
+         LINK : /LTCG specified but no code generation required; remove /LTCG from the link command line to improve linker performance
+         EcoBLA1.vcxproj -> D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BLA1\AssemblyFiles\Windows\VS_v100\EcoBLA1\DynamicDebug\88DD94592E7C48BAB381EAA0F82A88F6.dll
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"..\..\..\BuildFiles\Windows\x86\DynamicDebug\88DD94592E7C48BAB381EAA0F82A88F6.dll;#2" /manifest EcoBLA1\DynamicDebug\88DD94592E7C48BAB381EAA0F82A88F6.dll.intermediate.manifest
+       FinalizeBuildStatus:
+         Deleting file "EcoBLA1\DynamicDebug\EcoBLA1.unsuccessfulbuild".
+         Touching "EcoBLA1\DynamicDebug\EcoBLA1.lastbuildstate".
+     1>Done Building Project "D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BLA1\AssemblyFiles\Windows\VS_v100\EcoBLA1.vcxproj" (rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:03.75
