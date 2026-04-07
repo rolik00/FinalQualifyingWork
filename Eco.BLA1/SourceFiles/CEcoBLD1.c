@@ -21,7 +21,11 @@
 #include "IEcoSystem1.h"
 #include "IEcoInterfaceBus1.h"
 #include "IEcoInterfaceBus1MemExt.h"
+#include "IEcoFileSystemManagement1.h"
+#include "IEcoFileManager1.h"
+#include "IEcoFile1.h"
 #include "CEcoBLD1.h"
+#include "IdEcoFileSystemManagement1.h"
 
 /*
  *
@@ -118,7 +122,7 @@ static uint32_t ECOCALLMETHOD CEcoBLD1_F82A88F6_get_Flags(IEcoLexicalData1Ptr_t 
         return ERR_ECO_POINTER;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_flags;
 }
 
 static uint32_t ECOCALLMETHOD CEcoBLD1_F82A88F6_get_InitialState(IEcoLexicalData1Ptr_t me) {
@@ -129,7 +133,7 @@ static uint32_t ECOCALLMETHOD CEcoBLD1_F82A88F6_get_InitialState(IEcoLexicalData
         return ERR_ECO_POINTER;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_initialState;
 }
 
 static uint32_t ECOCALLMETHOD CEcoBLD1_F82A88F6_get_Version(IEcoLexicalData1Ptr_t me) {
@@ -140,7 +144,7 @@ static uint32_t ECOCALLMETHOD CEcoBLD1_F82A88F6_get_Version(IEcoLexicalData1Ptr_
         return ERR_ECO_POINTER;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_version;
 }
 
 static uint16_t* ECOCALLMETHOD CEcoBLD1_F82A88F6_get_GlobalAlphabetMap(IEcoLexicalData1Ptr_t me) {
@@ -151,7 +155,7 @@ static uint16_t* ECOCALLMETHOD CEcoBLD1_F82A88F6_get_GlobalAlphabetMap(IEcoLexic
         return 0;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_pGlobalAlphabetMap;
 }
 
 static uint16_t* ECOCALLMETHOD CEcoBLD1_F82A88F6_get_AlphabetMapByLexerState(IEcoLexicalData1Ptr_t me, char_t* lexerStateName) {
@@ -162,7 +166,7 @@ static uint16_t* ECOCALLMETHOD CEcoBLD1_F82A88F6_get_AlphabetMapByLexerState(IEc
         return 0;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_pGlobalAlphabetMap;
 }
 
 static uint16_t ECOCALLMETHOD CEcoBLD1_F82A88F6_get_AlphabetClassesCount(IEcoLexicalData1Ptr_t me, char_t* lexerStateName) {
@@ -173,7 +177,7 @@ static uint16_t ECOCALLMETHOD CEcoBLD1_F82A88F6_get_AlphabetClassesCount(IEcoLex
         return ERR_ECO_POINTER;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_alphabetClassesCount;
 }
 
 static uint16_t* ECOCALLMETHOD CEcoBLD1_F82A88F6_get_StateClassMap(IEcoLexicalData1Ptr_t me) {
@@ -184,7 +188,7 @@ static uint16_t* ECOCALLMETHOD CEcoBLD1_F82A88F6_get_StateClassMap(IEcoLexicalDa
         return 0;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_pStateClassMap;
 }
 
 static uint32_t ECOCALLMETHOD CEcoBLD1_F82A88F6_get_TotalStatesCount(IEcoLexicalData1Ptr_t me) {
@@ -195,7 +199,7 @@ static uint32_t ECOCALLMETHOD CEcoBLD1_F82A88F6_get_TotalStatesCount(IEcoLexical
         return ERR_ECO_POINTER;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_totalStatesCount;
 }
 
 static int32_t* ECOCALLMETHOD CEcoBLD1_F82A88F6_get_TransitionMatrix(IEcoLexicalData1Ptr_t me, char_t* lexerStateName) {
@@ -206,7 +210,7 @@ static int32_t* ECOCALLMETHOD CEcoBLD1_F82A88F6_get_TransitionMatrix(IEcoLexical
         return 0;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_pTransitionMatrix;
 }
 
 static uint16_t ECOCALLMETHOD CEcoBLD1_F82A88F6_get_StateClassesCount(IEcoLexicalData1Ptr_t me) {
@@ -217,29 +221,90 @@ static uint16_t ECOCALLMETHOD CEcoBLD1_F82A88F6_get_StateClassesCount(IEcoLexica
         return ERR_ECO_POINTER;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_stateClassesCount;
 }
 
 static int16_t ECOCALLMETHOD CEcoBLD1_F82A88F6_get_StateClassInfo(IEcoLexicalData1Ptr_t me, uint16_t stateClassId, EcoLexicalStateClassInfo* pInfo) {
     CEcoBLD1_F82A88F6* pCMe = (CEcoBLD1_F82A88F6*)me;
 
     /* Pointer Validation */
-    if (me == 0 ) {
+    if (me == 0 || pInfo == 0 || stateClassId >= pCMe->m_stateClassesCount) {
         return ERR_ECO_POINTER;
     }
 
+    *pInfo = pCMe->m_pStateClassInfoArray[stateClassId];
     return ERR_ECO_SUCCESES;
 }
 
 static int16_t ECOCALLMETHOD CEcoBLD1_F82A88F6_Save(IEcoLexicalData1Ptr_t me, char_t* fileName) {
-    CEcoBLD1_F82A88F6* pCMe = (CEcoBLD1_F82A88F6*)me;
+	CEcoBLD1_F82A88F6* pCMe = (CEcoBLD1_F82A88F6*)me;
+    IEcoInterfaceBus1* pIBus = 0;
+    IEcoFileSystemManagement1* pIFSM = 0;
+    IEcoFileManager1* pIFMgr = 0;
+    IEcoFile1* pIFile = 0;
+    int16_t result = 0;
+	uint32_t magic, version, flags, initialState;
+    uint16_t alphabetClassesCount, stateClassesCount;
+    uint32_t totalStatesCount, matrixSize;
 
-    /* Pointer Validation */
-    if (me == 0 ) {
-        return ERR_ECO_POINTER;
+    if (!me || !fileName) {
+		return ERR_ECO_POINTER;
+	}
+
+    result = pCMe->m_pISys->pVTbl->QueryInterface(pCMe->m_pISys, &IID_IEcoInterfaceBus1, (void**)&pIBus);
+    if (result != 0 || !pIBus) {
+		return result;
+	}
+
+    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoFileSystemManagement1, 0, &IID_IEcoFileSystemManagement1, (void**)&pIFSM);
+    pIBus->pVTbl->Release(pIBus);
+    if (result != 0 || !pIFSM) {
+		return result;
+	}
+
+    pIFMgr = pIFSM->pVTbl->get_FileManager(pIFSM);
+    pIFile = pIFMgr->pVTbl->Create(pIFMgr, fileName);
+    if (!pIFile) {
+        pIFSM->pVTbl->Release(pIFSM);
+        return -1;
     }
 
+    magic = 0x4C58444C; 
+	version = pCMe->m_version;
+    flags = pCMe->m_flags;
+    initialState = pCMe->m_initialState;
+    alphabetClassesCount = pCMe->m_alphabetClassesCount;
+    stateClassesCount = pCMe->m_stateClassesCount;
+    totalStatesCount = pCMe->m_totalStatesCount;
+    matrixSize = totalStatesCount * alphabetClassesCount;
+
+#define WRITE(ptr, size) do { \
+    uint32_t w = size; \
+    if (pIFile->pVTbl->Write(pIFile, ptr, &w) != 0 || w != size) goto error; \
+} while (0)
+
+    WRITE(&magic, sizeof(magic));
+    WRITE(&version, sizeof(version));
+    WRITE(&flags, sizeof(flags));
+    WRITE(&initialState, sizeof(initialState));
+    WRITE(&alphabetClassesCount, sizeof(alphabetClassesCount));
+    WRITE(pCMe->m_pGlobalAlphabetMap, 256 * sizeof(uint16_t));
+    WRITE(&stateClassesCount, sizeof(stateClassesCount));
+    WRITE(pCMe->m_pStateClassMap, totalStatesCount * sizeof(uint16_t));
+    WRITE(&totalStatesCount, sizeof(totalStatesCount));
+    WRITE(pCMe->m_pTransitionMatrix, matrixSize * sizeof(int32_t));
+    WRITE(pCMe->m_pStateClassInfoArray, stateClassesCount * sizeof(EcoLexicalStateClassInfo));
+
+#undef WRITE
+
+    pIFile->pVTbl->Close(pIFile);
+    pIFSM->pVTbl->Release(pIFSM);
     return ERR_ECO_SUCCESES;
+
+error:
+    pIFile->pVTbl->Close(pIFile);
+    pIFSM->pVTbl->Release(pIFSM);
+    return -1;
 }
 
 static uint32_t ECOCALLMETHOD CEcoBLD1_F82A88F6_get_Checksum(IEcoLexicalData1Ptr_t me) {
@@ -351,6 +416,10 @@ static void ECOCALLMETHOD deleteCEcoBLD1_F82A88F6(/* in */ CEcoBLD1_F82A88F6Ptr_
         if ( pCMe->m_pISys != 0 ) {
             pCMe->m_pISys->pVTbl->Release(pCMe->m_pISys);
         }
+		if (pCMe->m_pGlobalAlphabetMap) pIMem->pVTbl->Free(pIMem, pCMe->m_pGlobalAlphabetMap);
+        if (pCMe->m_pStateClassMap) pIMem->pVTbl->Free(pIMem, pCMe->m_pStateClassMap);
+        if (pCMe->m_pTransitionMatrix) pIMem->pVTbl->Free(pIMem, pCMe->m_pTransitionMatrix);
+        if (pCMe->m_pStateClassInfoArray) pIMem->pVTbl->Free(pIMem, pCMe->m_pStateClassInfoArray);
         pIMem->pVTbl->Free(pIMem, pCMe);
         pIMem->pVTbl->Release(pIMem);
     }
@@ -386,5 +455,15 @@ CEcoBLD1_F82A88F6 g_xCEcoBLD1_F82A88F6 = {
     1, /* m_cRef */
     0, /* m_pISys */
     0, /* m_pISys */
-    0  /* m_Name */
+    0, /* m_Name */
+	0, /* m_flags */ 
+    0, /* m_initialState */
+    0, /* m_version */
+    0, /* m_alphabetClassesCount */
+    0, /* m_pGlobalAlphabetMap */
+    0, /* m_stateClassesCount */
+    0, /* m_pStateClassMap */ 
+    0, /* m_totalStatesCount */
+    0, /* m_pTransitionMatrix */
+    0  /* m_pStateClassInfoArray */
 };

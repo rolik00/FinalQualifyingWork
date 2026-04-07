@@ -51,6 +51,18 @@ typedef struct CEcoBLA1Token_F82A88F6 {
     /* Instance data */
     char_t* m_Name;
 
+	uint32_t m_type;                   
+    char_t* m_lexeme;                  
+    uint16_t m_length;                 
+    uint32_t m_line;                   
+    uint32_t m_column;                 
+    uint64_t m_position;               
+    uint32_t m_channel;                
+    bool_t m_isEOF;                    
+    bool_t m_isError; 
+
 } CEcoBLA1Token_F82A88F6;
+
+extern CEcoBLA1Token_F82A88F6 g_xCEcoBLA1Token_F82A88F6;
 
 #endif /* __I_ECO_BASIC_LEXICAL_ANALYZER_1_TOKEN_H__ */

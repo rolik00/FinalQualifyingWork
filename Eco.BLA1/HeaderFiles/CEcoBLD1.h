@@ -52,6 +52,20 @@ typedef struct CEcoBLD1_F82A88F6 {
     /* Instance data */
     char_t* m_Name;
 
+	/* поля для сжатой таблицы лексического анализатора */
+    uint32_t m_flags;
+    uint32_t m_initialState;
+    uint32_t m_version;
+    uint16_t m_alphabetClassesCount;
+    uint16_t* m_pGlobalAlphabetMap;
+    uint16_t m_stateClassesCount;
+    uint16_t* m_pStateClassMap; 
+    uint32_t m_totalStatesCount;
+    int32_t* m_pTransitionMatrix;
+    EcoLexicalStateClassInfo* m_pStateClassInfoArray;
+
 } CEcoBLD1_F82A88F6;
+
+extern CEcoBLD1_F82A88F6 g_xCEcoBLD1_F82A88F6;
 
 #endif /* __I_ECO_BASIC_LEXICAL_DATA_1_H__ */

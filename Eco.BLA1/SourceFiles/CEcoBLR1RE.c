@@ -22,10 +22,13 @@
 #include "IEcoInterfaceBus1.h"
 #include "IEcoInterfaceBus1MemExt.h"
 #include "CEcoBLR1RE.h"
+#include "CEcoBLD1.h"
 #include "IdEcoList1.h"
 #include "IdEcoBRE1.h"
 #include "IdEcoFSM1.h"
 #include <string.h>
+
+extern IEcoLexicalData1VTbl g_xDB2E163758AA4447A843545A8805D3FEVTbl_F82A88F6;
 
 /*
  *
@@ -279,7 +282,7 @@ static int16_t ECOCALLMETHOD CEcoBLR1RE_F82A88F6_AddRuleRE(IEcoLexicalRules1REPt
         }
     }
 	pRule->tokenId = tokenId;
-    pRule->priority = 0;
+    pRule->priority = 999999U;
     pRule->channel = 0;
 	pRule->action = 0;
     pRule->actionContext = 0;
@@ -322,7 +325,7 @@ static int16_t ECOCALLMETHOD CEcoBLR1RE_F82A88F6_AddRuleObject(IEcoLexicalRules1
         }
     }
     pRule->tokenId = tokenId;
-    pRule->priority = 0;
+    pRule->priority = 999999U;
     pRule->channel = 0;
     pRule->action = 0;
     pRule->actionContext = 0;
@@ -616,12 +619,77 @@ static int16_t ECOCALLMETHOD CEcoBLR1RE_F82A88F6_Clear(IEcoLexicalRules1REPtr_t 
 
     pList->pVTbl->Clear(pList);
 
-    if (pCMe->m_pSuperNFA) {
-        pCMe->m_pSuperNFA->pVTbl->Release(pCMe->m_pSuperNFA);
-        pCMe->m_pSuperNFA = 0;
-    }
-
 	return ERR_ECO_SUCCESES;
+}
+
+/* Вспомогательная функция – получение кода символа из события */
+static void GetSymbolsFromEvent(IEcoFSM1Event* pEvent, uint8_t* chars, int* count) {
+    IEcoList1* pSymbolSets = pEvent->pVTbl->get_SymbolSets(pEvent);
+    uint32_t numSets;
+	uint32_t i = 0;
+	*count = 0;
+
+    if (!pSymbolSets) {
+        return;
+    }
+    
+	numSets = pSymbolSets->pVTbl->Count(pSymbolSets);
+    
+	for (i = 0; i < numSets; i++) {
+		int isComplement, ch;
+        IEcoFL1SymbolSet* pSet = (IEcoFL1SymbolSet*)pSymbolSets->pVTbl->Item(pSymbolSets, i);
+        if (!pSet) {
+			continue;
+		}
+
+        isComplement = pSet->pVTbl->IsComplement(pSet);
+        if (isComplement) {
+            for (ch = 0; ch < 256 && *count < 256; ch++) {
+                chars[(*count)++] = (uint8_t)ch;
+            }
+        } else {
+            for (ch = 0; ch < 256 && *count < 256; ch++) {
+                if (pSet->pVTbl->IsExist(pSet, (byte_t*)&ch, 1, 0)) {
+                    chars[(*count)++] = (uint8_t)ch;
+                }
+            }
+        }
+    }
+}
+
+/* Вспомогательная функция: проверяет, совпадают ли два события по набору символов */
+static bool_t EventsHaveSameSymbols(IEcoFSM1Event* ev1, IEcoFSM1Event* ev2) {
+    uint8_t sym1[256], sym2[256];
+    int cnt1 = 0, cnt2 = 0;
+	int i = 0, j = 0;
+	
+	if (!ev1 || !ev2) {
+		return 0;
+	}
+    if (ev1 == ev2) {
+		return 1;
+	}
+
+    GetSymbolsFromEvent(ev1, sym1, &cnt1);
+    GetSymbolsFromEvent(ev2, sym2, &cnt2);
+
+    if (cnt1 != cnt2) {
+		return 0;
+	}
+
+    for (i = 0; i < cnt1; i++) {
+        bool_t found = 0;
+        for (j = 0; j < cnt2; j++) {
+            if (sym1[i] == sym2[j]) { 
+				found = 1; 
+				break; 
+			}
+        }
+        if (!found) {
+			return 0;
+		}
+    }
+    return 1;
 }
 
 /*
@@ -674,7 +742,7 @@ static int16_t BuildSuperNFA(CEcoBLR1RE_F82A88F6* pCMe) {
             pInfo = (FinalStateInfo*)pCMe->m_pFinalStateAttrs->pVTbl->Item(pCMe->m_pFinalStateAttrs, i);
             if (pInfo) {
                 if (pInfo->pState) {
-                    pInfo->pState->pVTbl->Release(pInfo->pState);
+					pInfo->pState->pVTbl->Release(pInfo->pState);
                 }
                 pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pInfo);
             }
@@ -834,7 +902,7 @@ static int16_t BuildSuperNFA(CEcoBLR1RE_F82A88F6* pCMe) {
     pCMe->m_pSuperNFA = pSuperNFA;
     pFSMFactory->pVTbl->Release(pFSMFactory);
 
-    return ERR_ECO_SUCCESES;
+	return ERR_ECO_SUCCESES;
 }
 
 /* Вспомогательная функция, вычисляющая ε-замыкание для состояния S */
@@ -934,6 +1002,7 @@ static DFAState* CreateDFAState(CEcoBLR1RE_F82A88F6* pCMe, IEcoList1* nfaSet) {
 
     memset(ds, 0, sizeof(DFAState));
     ds->nfaStates = nfaSet;
+	if (ds->nfaStates) ds->nfaStates->pVTbl->AddRef(ds->nfaStates);
     ds->isAccepting = 0;
     ds->bestPriority = 0xFFFFFFFFU;
 	
@@ -997,7 +1066,7 @@ static int16_t ConvertNFAToDFA(CEcoBLR1RE_F82A88F6* pCMe) {
     bool_t found;
     int16_t result;
     uint32_t processed;
-    uint32_t i, j, k, l;
+    uint32_t i, j, k, l, t;
     uint32_t oldCount, evCount, nfaCount, transCount;
 
     if (!pCMe || !pCMe->m_pSuperNFA || !pCMe->m_pDFAStates || !pCMe->m_pFinalStateAttrs) {
@@ -1034,25 +1103,26 @@ static int16_t ConvertNFAToDFA(CEcoBLR1RE_F82A88F6* pCMe) {
         return -1;
     }
 
-    for (i = 0; i < transCount; i++) {
-        IEcoFSM1Event* ev;
-        tr = (IEcoFSM1Transition*)pAllTrans->pVTbl->Item(pAllTrans, i);
-        ev = tr->pVTbl->get_Event(tr);
+    for (t = 0; t < transCount; t++) {
+		IEcoFSM1Transition* tr = (IEcoFSM1Transition*)pAllTrans->pVTbl->Item(pAllTrans, t);
+        IEcoFSM1Event* ev = tr->pVTbl->get_Event(tr);
         if (ev && !ev->pVTbl->IsNull(ev)) {
+			bool_t alreadyHave = 0;
+            uint32_t e;
             uint32_t evCount = pNonEpsilonEvents->pVTbl->Count(pNonEpsilonEvents);
-            bool_t found = 0;
-            for (j = 0; j < evCount; j++) {
-                if ((IEcoFSM1Event*)pNonEpsilonEvents->pVTbl->Item(pNonEpsilonEvents, j) == ev) {
-                    found = 1;
-                    break;
-                }
-            }
-            if (!found) {
-                pNonEpsilonEvents->pVTbl->Add(pNonEpsilonEvents, ev);
+            for (e = 0; e < evCount; e++) {
+				IEcoFSM1Event* existing = (IEcoFSM1Event*)pNonEpsilonEvents->pVTbl->Item(pNonEpsilonEvents, e);
+                if (EventsHaveSameSymbols(ev, existing)) {
+					alreadyHave = 1;
+					break;
+				}
+			}
+			if (!alreadyHave) {
+				pNonEpsilonEvents->pVTbl->Add(pNonEpsilonEvents, ev);
                 ev->pVTbl->AddRef(ev);
-            }
-        }
-    }
+			}
+		}
+	}
 
     pStartNFA = FindStartState(pCMe->m_pSuperNFA);
     if (!pStartNFA) {
@@ -1083,6 +1153,7 @@ static int16_t ConvertNFAToDFA(CEcoBLR1RE_F82A88F6* pCMe) {
         return ERR_ECO_OUTOFMEMORY;
     }
     pCMe->m_pDFAStates->pVTbl->Add(pCMe->m_pDFAStates, pStartDFA);
+	pCMe->m_startStateIdx = 0;
 
     processed = 0;
     while (processed < pCMe->m_pDFAStates->pVTbl->Count(pCMe->m_pDFAStates)) {
@@ -1099,7 +1170,7 @@ static int16_t ConvertNFAToDFA(CEcoBLR1RE_F82A88F6* pCMe) {
                 nfaState = (IEcoFSM1State*)cur->nfaStates->pVTbl->Item(cur->nfaStates, j);
                 for (k = 0; k < transCount; k++) {
                     tr = (IEcoFSM1Transition*)pAllTrans->pVTbl->Item(pAllTrans, k);
-                    if (tr->pVTbl->get_Source(tr) == nfaState && tr->pVTbl->get_Event(tr) == ev) {
+                    if (tr->pVTbl->get_Source(tr) == nfaState && EventsHaveSameSymbols(tr->pVTbl->get_Event(tr), ev)) {
                         target = tr->pVTbl->get_Target(tr);
                         found = 0;
                         for (l = 0; l < moveSet->pVTbl->Count(moveSet); l++) {
@@ -1160,15 +1231,492 @@ static int16_t ConvertNFAToDFA(CEcoBLR1RE_F82A88F6* pCMe) {
  * </summary>
  *
  * <description>
- *   Минимизирует DFA на основе алгоритма Хопкрофта
+ *   Минимизирует DFA табличным методом (Table-filling algorithm)
  * </description>
  *
  */
 static int16_t MinimizeDFA(CEcoBLR1RE_F82A88F6* pCMe) {
-	if (pCMe == 0) {
+    IEcoList1* pNewDFAStates = 0;
+    IEcoInterfaceBus1* pIBus = 0;
+    bool_t* distinguishable = 0;
+    uint32_t *newGroup = 0, *groupRep = 0;
+    bool_t changed = 1;
+    int16_t result = 0;
+    uint32_t i, j, s, t;
+    uint32_t numGroups = 0, dfaCount = 0;
+	uint32_t oldStartState = 0;
+
+    if (pCMe == 0 || pCMe->m_pDFAStates == 0) {
         return ERR_ECO_POINTER;
     }
 
+    dfaCount = pCMe->m_pDFAStates->pVTbl->Count(pCMe->m_pDFAStates);
+
+    if (dfaCount <= 1) {
+        return ERR_ECO_SUCCESES;
+    }
+
+    result = pCMe->m_pISys->pVTbl->QueryInterface(pCMe->m_pISys, &IID_IEcoInterfaceBus1, (void**)&pIBus);
+    if (result != 0 || pIBus == 0) {
+        return result;
+    }
+
+    distinguishable = (bool_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, dfaCount * dfaCount * sizeof(bool_t));
+    if (distinguishable == 0) {
+        pIBus->pVTbl->Release(pIBus);
+        return ERR_ECO_OUTOFMEMORY;
+    }
+    memset(distinguishable, 0, dfaCount * dfaCount * sizeof(bool_t));
+
+    for (i = 0; i < dfaCount; i++) {
+        DFAState* ds1 = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, i);
+        for (j = i + 1; j < dfaCount; j++) {
+            DFAState* ds2 = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, j);
+            bool_t diff = 0;
+
+            if (ds1->isAccepting != ds2->isAccepting) {
+                diff = 1;
+            } else if (ds1->isAccepting && ds2->isAccepting) {
+                if (ds1->bestTokenId != ds2->bestTokenId) {
+                    diff = 1;
+                }
+            }
+
+            distinguishable[i * dfaCount + j] = diff;
+            distinguishable[j * dfaCount + i] = diff;
+        }
+    }
+
+    while (changed) {
+		changed = 0;
+		for (i = 0; i < dfaCount; i++) {
+			for (j = i + 1; j < dfaCount; j++) {
+				DFAState *ds1, *ds2;
+				if (distinguishable[i * dfaCount + j]) {
+					continue;
+				}
+
+				ds1 = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, i);
+                ds2 = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, j);
+
+				if (ds1->transitions && ds2->transitions) {
+					uint32_t tc1 = ds1->transitions->pVTbl->Count(ds1->transitions);
+					uint32_t tc2 = ds2->transitions->pVTbl->Count(ds2->transitions);
+
+					for (s = 0; s < tc1; s++) {
+						DFATransition* tr1 = (DFATransition*)ds1->transitions->pVTbl->Item(ds1->transitions, s);
+                        bool_t foundMatch = 0;
+
+                        for (t = 0; t < tc2; t++) {
+							DFATransition* tr2 = (DFATransition*)ds2->transitions->pVTbl->Item(ds2->transitions, t);
+                            if (tr1->pEvent == tr2->pEvent) {
+								uint32_t target1 = tr1->targetStateIdx;
+								uint32_t target2 = tr2->targetStateIdx;
+								if (distinguishable[target1 * dfaCount + target2]) {
+									distinguishable[i * dfaCount + j] = 1;
+									distinguishable[j * dfaCount + i] = 1;
+									changed = 1;
+									foundMatch = 1;
+									break;
+								}
+							}
+						}
+						if (foundMatch) {
+							break;
+						}
+					}
+				}
+            }
+        }
+    }
+   
+    newGroup = (uint32_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, dfaCount * sizeof(uint32_t));
+    if (newGroup == 0) {
+		goto cleanup;
+	}
+
+    for (i = 0; i < dfaCount; i++) {
+		newGroup[i] = 0xFFFFFFFFU;
+	}
+
+    numGroups = 0;
+    for (i = 0; i < dfaCount; i++) {
+        if (newGroup[i] != 0xFFFFFFFFU) {
+			continue;
+		}
+        newGroup[i] = numGroups;
+        for (j = i + 1; j < dfaCount; j++) {
+            if (!distinguishable[i * dfaCount + j]) {
+                newGroup[j] = numGroups;
+            }
+        }
+        numGroups++;
+    }
+	oldStartState = pCMe->m_startStateIdx;
+
+    groupRep = (uint32_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, numGroups * sizeof(uint32_t));
+    if (groupRep == 0) {
+		goto cleanup;
+	}
+    for (i = 0; i < numGroups; i++) {
+		groupRep[i] = 0xFFFFFFFFU;
+	}
+
+    for (i = 0; i < dfaCount; i++) {
+        uint32_t g = newGroup[i];
+        if (groupRep[g] == 0xFFFFFFFFU || i < groupRep[g]) {
+            groupRep[g] = i;
+        }
+    }
+
+    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoList1, 0, &IID_IEcoList1, (void**)&pNewDFAStates);
+    if (result != 0 || pNewDFAStates == 0) {
+		goto cleanup;
+	}
+
+    for (i = 0; i < numGroups; i++) {
+        uint32_t repIdx = groupRep[i];
+        DFAState* rep = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, repIdx);
+        DFAState* newDS = (DFAState*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(DFAState));
+
+        if (newDS == 0) {
+            pNewDFAStates->pVTbl->Release(pNewDFAStates);
+            goto cleanup;
+        }
+
+        memset(newDS, 0, sizeof(DFAState));
+
+        newDS->isAccepting = rep->isAccepting;
+        newDS->bestTokenId = rep->bestTokenId;
+        newDS->bestPriority = rep->bestPriority;
+        newDS->bestAction = rep->bestAction;
+        newDS->bestActionContext = rep->bestActionContext;
+        newDS->bestChannel = rep->bestChannel;
+        newDS->nfaStates = 0;
+
+        result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoList1, 0, &IID_IEcoList1, (void**)&newDS->transitions);
+        if (result == 0 && newDS->transitions && rep->transitions) {
+            uint32_t tc = rep->transitions->pVTbl->Count(rep->transitions);
+            for (t = 0; t < tc; t++) {
+                DFATransition* oldTr = (DFATransition*)rep->transitions->pVTbl->Item(rep->transitions, t);
+                if (oldTr && oldTr->pEvent) {
+                    DFATransition* newTr = (DFATransition*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(DFATransition));
+                    if (newTr) {
+                        newTr->pEvent = oldTr->pEvent;
+                        newTr->pEvent->pVTbl->AddRef(newTr->pEvent);
+                        newTr->targetStateIdx = newGroup[oldTr->targetStateIdx];
+                        newDS->transitions->pVTbl->Add(newDS->transitions, newTr);
+                    }
+                }
+            }
+        }
+        pNewDFAStates->pVTbl->Add(pNewDFAStates, newDS);
+    }
+
+    for (i = 0; i < dfaCount; i++) {
+        DFAState* ds = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, i);
+        if (ds) {
+            if (ds->nfaStates)   ds->nfaStates->pVTbl->Release(ds->nfaStates);
+            if (ds->transitions) ds->transitions->pVTbl->Release(ds->transitions);
+            pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, ds);
+        }
+    }
+    pCMe->m_pDFAStates->pVTbl->Clear(pCMe->m_pDFAStates);
+    pCMe->m_pDFAStates->pVTbl->Release(pCMe->m_pDFAStates);
+    pCMe->m_pDFAStates = pNewDFAStates;
+
+	if (oldStartState < dfaCount) {
+        pCMe->m_startStateIdx = newGroup[oldStartState];
+    } else {
+        pCMe->m_startStateIdx = 0;
+    }
+
+cleanup:
+    if (distinguishable) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, distinguishable);
+    if (newGroup) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, newGroup);
+    if (groupRep) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, groupRep);
+    if (pIBus) pIBus->pVTbl->Release(pIBus);
+
+    return result;
+}
+
+/*
+ *
+ * <summary>
+ *   Вспомогательная функция для сжатия таблицы
+ * </summary>
+ *
+ * <description>
+ *   Формирует таблицу переходов в формате IEcoLexicalData1
+ * </description>
+ *
+ */
+static int16_t CompressToIEcoLexicalData1(CEcoBLR1RE_F82A88F6* pCMe, IEcoLexicalData1Ptr_t* ppIData) {
+	int16_t result = ERR_ECO_SUCCESES;
+    IEcoList1* pDFAStates = pCMe->m_pDFAStates;
+    uint32_t dfaCount = 0;
+    DFAState** pStates = 0;
+    uint32_t i, j, s;
+    uint16_t alphabetClassesCount = 0;
+    uint16_t* globalAlphabetMap = 0;
+    int32_t* transitionMatrix = 0;
+    uint16_t* stateClassMap = 0;
+    EcoLexicalStateClassInfo* stateClassInfo = 0;
+    CEcoBLD1_F82A88F6* pLexData = 0;
+	int32_t** fullTrans;
+	uint32_t* signatures;
+	uint16_t* charToClass;
+	uint32_t matrixSize;
+	static const uint8_t whitespace[] = { ' ', '\t', '\r', '\n' };
+    uint32_t wsCount = sizeof(whitespace) / sizeof(whitespace[0]);
+
+    /* Проверка указателей */
+    if (!pCMe || !pDFAStates || !ppIData) {
+        return ERR_ECO_POINTER;
+    }
+
+    *ppIData = 0;
+    dfaCount = pDFAStates->pVTbl->Count(pDFAStates);
+    if (dfaCount == 0) {
+        return -1;
+    }
+
+    pStates = (DFAState**)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, dfaCount * sizeof(DFAState*));
+    if (!pStates) return ERR_ECO_OUTOFMEMORY;
+    for (i = 0; i < dfaCount; i++) {
+        pStates[i] = (DFAState*)pDFAStates->pVTbl->Item(pDFAStates, i);
+		if (!pStates[i]) {
+            pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
+            return -1;
+        }
+    }
+
+    fullTrans = (int32_t**)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, dfaCount * sizeof(int32_t*));
+    if (!fullTrans) {
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
+        return ERR_ECO_OUTOFMEMORY;
+    }
+    for (i = 0; i < dfaCount; i++) {
+        fullTrans[i] = (int32_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, 256 * sizeof(int32_t));
+        if (!fullTrans[i]) {
+            for (j = 0; j < i; j++) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans[j]);
+            pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans);
+            pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
+            return ERR_ECO_OUTOFMEMORY;
+        }
+        for (j = 0; j < 256; j++) fullTrans[i][j] = -1;
+    }
+
+    for (i = 0; i < dfaCount; i++) {
+        DFAState* state = pStates[i];
+		uint32_t transCount;
+
+        if (!state->transitions) {
+				continue;
+		}
+
+        transCount = state->transitions->pVTbl->Count(state->transitions);
+        for (j = 0; j < transCount; j++) {
+			uint8_t symbols[256];
+			int numSymbols = 0, si = 0;
+            DFATransition* tr = (DFATransition*)state->transitions->pVTbl->Item(state->transitions, j);
+           
+			if (!tr || !tr->pEvent) {
+				continue;
+			}
+
+            GetSymbolsFromEvent(tr->pEvent, symbols, &numSymbols);
+			for (si = 0; si < numSymbols; si++) {
+				int ch = symbols[si];
+				if (ch >= 0 && ch < 256) {
+					uint32_t newTarget = (uint32_t)tr->targetStateIdx;
+					uint32_t oldTarget = (uint32_t)fullTrans[i][ch];
+					if (oldTarget == 0xFFFFFFFFU || pStates[newTarget]->bestPriority < pStates[oldTarget]->bestPriority) {
+						fullTrans[i][ch] = (int32_t)newTarget;
+					}
+				}
+			}
+        }
+    }
+
+	/* Небольшой костыль: любой токен, у которого priority != 0, НЕ может продолжаться на whitespace */
+	for (s = 0; s < dfaCount; s++) {
+        DFAState* ds = pStates[s];
+        if (ds && ds->isAccepting && ds->bestPriority != 0) { 
+			uint32_t w = 0;
+            for (w = 0; w < wsCount; w++) {
+				fullTrans[s][whitespace[w]] = -1;
+			}
+        }
+    }
+	
+	for (s = 0; s < dfaCount; s++) {
+		DFAState* ds = pStates[s];
+		if (ds && ds->isAccepting && ds->bestChannel == 1) {
+			int ch = 0; 
+			for (ch = 0; ch < 256; ch++) {
+				bool_t isWS = 0;
+				uint32_t w = 0;
+				for (w = 0; w < wsCount; w++) {
+					if (ch == whitespace[w]) { 
+						isWS = 1; 
+						break; 
+					}
+				}
+				if (!isWS) {
+					fullTrans[s][ch] = -1; 
+				}
+			}
+		}
+	}
+
+    signatures = (uint32_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, 256 * sizeof(uint32_t));
+    if (!signatures) {
+        for (i = 0; i < dfaCount; i++) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans[i]);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
+        return ERR_ECO_OUTOFMEMORY;
+    }
+
+    for (i = 0; i < 256; i++) {
+        uint32_t hash = 2166136261U;
+        for (j = 0; j < dfaCount; j++) {
+            hash = (hash ^ (uint32_t)(fullTrans[j][i] + 1)) * 16777619U; 
+        }
+        signatures[i] = hash;
+    }
+
+    charToClass = (uint16_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, 256 * sizeof(uint16_t));
+    if (!charToClass) {
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, signatures);
+        for (i = 0; i < dfaCount; i++) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans[i]);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
+        return ERR_ECO_OUTOFMEMORY;
+    }
+
+    alphabetClassesCount = 0;
+    for (i = 0; i < 256; i++) {
+        uint16_t classId = 0xFFFF;
+        for (j = 0; j < i; j++) {
+            if (signatures[j] == signatures[i]) {
+                classId = charToClass[j];
+                break;
+            }
+        }
+        if (classId == 0xFFFF) {
+            classId = alphabetClassesCount++;
+        }
+        charToClass[i] = classId;
+    }
+
+    globalAlphabetMap = (uint16_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, 256 * sizeof(uint16_t));
+    if (!globalAlphabetMap) {
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, charToClass);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, signatures);
+        for (i = 0; i < dfaCount; i++) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans[i]);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
+        return ERR_ECO_OUTOFMEMORY;
+    }
+    for (i = 0; i < 256; i++) {
+        globalAlphabetMap[i] = charToClass[i];
+    }
+
+    matrixSize = dfaCount * alphabetClassesCount;
+    transitionMatrix = (int32_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, matrixSize * sizeof(int32_t));
+    if (!transitionMatrix) {
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, globalAlphabetMap);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, charToClass);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, signatures);
+        for (i = 0; i < dfaCount; i++) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans[i]);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
+        return ERR_ECO_OUTOFMEMORY;
+    }
+
+    for (i = 0; i < dfaCount; i++) {
+		uint16_t classId = 0;
+        for (classId = 0; classId < alphabetClassesCount; classId++) {
+            int32_t target = -1;
+			uint16_t ch = 0;
+            for (ch = 0; ch < 256; ch++) {
+                if (charToClass[ch] == classId) {
+                    target = fullTrans[i][ch];
+                    break;
+                }
+            }
+            transitionMatrix[i * alphabetClassesCount + classId] = target;
+        }
+    }
+
+    pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, charToClass);
+    pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, signatures);
+    for (i = 0; i < dfaCount; i++) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans[i]);
+    pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans);
+
+    stateClassInfo = (EcoLexicalStateClassInfo*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, dfaCount * sizeof(EcoLexicalStateClassInfo));
+    if (!stateClassInfo) {
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, transitionMatrix);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, globalAlphabetMap);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
+        return ERR_ECO_OUTOFMEMORY;
+    }
+
+    for (i = 0; i < dfaCount; i++) {
+        DFAState* state = pStates[i];
+        stateClassInfo[i].tokenId = state->bestTokenId;
+        stateClassInfo[i].channelId = state->bestChannel;
+        stateClassInfo[i].isFinal = state->isAccepting;
+        stateClassInfo[i].pContext = state->bestActionContext;
+		stateClassInfo[i].priority = state->bestPriority;
+    }
+
+    stateClassMap = (uint16_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, dfaCount * sizeof(uint16_t));
+    if (!stateClassMap) {
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, stateClassInfo);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, transitionMatrix);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, globalAlphabetMap);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
+        return ERR_ECO_OUTOFMEMORY;
+    }
+    for (i = 0; i < dfaCount; i++) {
+        stateClassMap[i] = (uint16_t)i;
+    }
+
+    pLexData = (CEcoBLD1_F82A88F6*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(CEcoBLD1_F82A88F6));
+    if (!pLexData) {
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, stateClassMap);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, stateClassInfo);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, transitionMatrix);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, globalAlphabetMap);
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
+        return ERR_ECO_OUTOFMEMORY;
+    }
+    memcpy(pLexData, &g_xCEcoBLD1_F82A88F6, sizeof(CEcoBLD1_F82A88F6));
+
+    pLexData->m_pVTblIData = &g_xDB2E163758AA4447A843545A8805D3FEVTbl_F82A88F6;
+    pLexData->m_cRef = 1;
+    pLexData->m_pIMem = pCMe->m_pIMem;
+	if (pLexData->m_pIMem) pLexData->m_pIMem->pVTbl->AddRef(pLexData->m_pIMem);
+	pLexData->m_pISys = pCMe->m_pISys;
+	if (pLexData->m_pISys) pLexData->m_pISys->pVTbl->AddRef(pLexData->m_pISys);
+	pLexData->m_Name = 0;
+
+    pLexData->m_flags = ECO_LEX_DATA_FL_STATE_CLASSES;
+    pLexData->m_initialState = pCMe->m_startStateIdx;
+    pLexData->m_version = 1;
+    pLexData->m_alphabetClassesCount = alphabetClassesCount;
+    pLexData->m_pGlobalAlphabetMap = globalAlphabetMap;
+    pLexData->m_stateClassesCount = (uint16_t)dfaCount;
+    pLexData->m_pStateClassMap = stateClassMap;
+    pLexData->m_totalStatesCount = dfaCount;
+    pLexData->m_pTransitionMatrix = transitionMatrix;
+    pLexData->m_pStateClassInfoArray = stateClassInfo;
+
+    pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
+
+    *ppIData = (IEcoLexicalData1Ptr_t)pLexData;
     return ERR_ECO_SUCCESES;
 }
 
@@ -1192,14 +1740,18 @@ static int16_t ECOCALLMETHOD CEcoBLR1RE_F82A88F6_Compile(IEcoLexicalRules1REPtr_
     if (result != 0) {
         return result;
     }
-
-    /* Этап 3: Минимизация DFA с использованием алгоритма Хопкрофта */
+	
+    /* Этап 3: Минимизация DFA табличным методом (Table-filling algorithm) */
 	result = MinimizeDFA(pCMe);
 	if (result != 0) {
 		return result;
 	}
 
     /* Этап 4: Построение таблицы переходов в формате IEcoLexicalData1 */ 
+	result = CompressToIEcoLexicalData1(pCMe, ppIData);
+	if (result != 0) {
+		return result;
+	}
 
     return ERR_ECO_SUCCESES;
 }
@@ -1287,6 +1839,7 @@ static int16_t ECOCALLMETHOD initCEcoBLR1RE_F82A88F6(/*in*/ CEcoBLR1RE_F82A88F6P
 		return -1;
     }
 
+	pCMe->m_startStateIdx = 0;
 
     /* Freeing */
     pIBus->pVTbl->Release(pIBus);
@@ -1331,6 +1884,14 @@ static int16_t ECOCALLMETHOD createCEcoBLR1RE_F82A88F6(/* in */ CEcoBLR1RE_F82A8
 static void ECOCALLMETHOD deleteCEcoBLR1RE_F82A88F6(/* in */ CEcoBLR1RE_F82A88F6Ptr_t pCMe) {
     IEcoMemoryAllocator1* pIMem = 0;
 
+	if (pCMe == 0) return;
+
+    pIMem = pCMe->m_pIMem;
+    if (pIMem == 0) return;
+
+	if (pCMe->m_cRef == 0xFFFFFFFFU) return;
+    pCMe->m_cRef = 0xFFFFFFFFU;
+
     if (pCMe != 0 ) {
         pIMem = pCMe->m_pIMem;
         /* Freeing */
@@ -1340,21 +1901,18 @@ static void ECOCALLMETHOD deleteCEcoBLR1RE_F82A88F6(/* in */ CEcoBLR1RE_F82A88F6
         if ( pCMe->m_pISys != 0 ) {
             pCMe->m_pISys->pVTbl->Release(pCMe->m_pISys);
         }
-		if (pCMe->m_pRulesList != 0) {
-			CEcoBLR1RE_F82A88F6_Clear((IEcoLexicalRules1REPtr_t)pCMe);
-			pCMe->m_pRulesList->pVTbl->Release(pCMe->m_pRulesList);
+		if (pCMe->m_pDFAStates != 0) {
+			pCMe->m_pDFAStates->pVTbl->Release(pCMe->m_pDFAStates);
 		}
 		if (pCMe->m_pFinalStateAttrs != 0) {
             pCMe->m_pFinalStateAttrs->pVTbl->Release(pCMe->m_pFinalStateAttrs);
         }
+		if (pCMe->m_pRulesList != 0) {
+			CEcoBLR1RE_F82A88F6_Clear((IEcoLexicalRules1REPtr_t)pCMe);
+			pCMe->m_pRulesList->pVTbl->Release(pCMe->m_pRulesList);
+		}
 		if (pCMe->m_pBRE != 0) {
 			pCMe->m_pBRE->pVTbl->Release(pCMe->m_pBRE);
-		}
-		if (pCMe->m_pSuperNFA != 0) {
-			pCMe->m_pSuperNFA->pVTbl->Release(pCMe->m_pSuperNFA);
-		}
-		if (pCMe->m_pDFAStates != 0) {
-			pCMe->m_pDFAStates->pVTbl->Release(pCMe->m_pDFAStates);
 		}
         pIMem->pVTbl->Free(pIMem, pCMe);
         pIMem->pVTbl->Release(pIMem);
@@ -1400,5 +1958,6 @@ CEcoBLR1RE_F82A88F6 g_xCEcoBLR1RE_F82A88F6 = {
 	0, /* m_pRulesList */      
 	0, /* m_pSuperNFA */
 	0, /* m_pFinalStateAttrs */
-	0  /* m_pDFAStates */
+	0, /* m_pDFAStates */
+	0  /* m_startStateIdx */
 };

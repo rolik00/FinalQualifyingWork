@@ -22,6 +22,8 @@
 
 #include "IEcoLexicalAnalyzer1Scanner.h"
 #include "IEcoSystem1.h"
+#include "IEcoFile1.h"
+#include "IEcoLexicalData1.h"
 #include "IdEcoMemoryManager1.h"
 
 typedef struct CEcoBLA1Scanner_F82A88F6* CEcoBLA1Scanner_F82A88F6Ptr_t;
@@ -51,6 +53,23 @@ typedef struct CEcoBLA1Scanner_F82A88F6 {
     /* Instance data */
     char_t* m_Name;
 
+	IEcoFile1* m_pIFile;             
+    IEcoLexicalData1* m_pIData;       
+    uint64_t m_filePos;                
+    uint32_t m_line;                   
+    uint32_t m_column;                 
+    char* m_buffer;                   
+    uint32_t m_bufferSize;             
+    uint32_t m_bufferPos;              
+    uint32_t m_bufferEnd;             
+    uint32_t m_currentState;           
+    uint32_t* m_stateStack;            
+    int32_t m_stateStackSize;          
+    int32_t m_stateStackTop;           
+    uint32_t m_channelMask;
+
 } CEcoBLA1Scanner_F82A88F6;
+
+extern CEcoBLA1Scanner_F82A88F6 g_xCEcoBLA1Scanner_F82A88F6;
 
 #endif /* __I_ECO_BASIC_LEXICAL_ANALYZER_1_SCANNER_H__ */

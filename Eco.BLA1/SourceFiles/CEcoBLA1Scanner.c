@@ -1,4 +1,4 @@
-/*
+﻿/*
  * <character encoding>
  *   Cyrillic (UTF-8 with signature) - Codepage 65001
  * </character encoding>
@@ -21,7 +21,9 @@
 #include "IEcoSystem1.h"
 #include "IEcoInterfaceBus1.h"
 #include "IEcoInterfaceBus1MemExt.h"
+#include "IEcoLexicalData1.h"
 #include "CEcoBLA1Scanner.h"
+#include "CEcoBLA1Token.h"
 
 /*
  *
@@ -112,13 +114,123 @@ static uint32_t ECOCALLMETHOD CEcoBLA1Scanner_F82A88F6_Release(/* in */ IEcoLexi
 
 static IEcoLexicalAnalyzer1TokenPtr_t ECOCALLMETHOD CEcoBLA1Scanner_F82A88F6_Scan(IEcoLexicalAnalyzer1ScannerPtr_t me) {
     CEcoBLA1Scanner_F82A88F6* pCMe = (CEcoBLA1Scanner_F82A88F6*)me;
+    CEcoBLA1Token_F82A88F6* pToken = 0;
+    IEcoLexicalData1* pIData = pCMe->m_pIData;
 
-    /* Pointer Validation */
-    if (me == 0) {
-        return 0;
+    uint16_t *globalMap = 0, *stateMap = 0;
+    uint16_t classCount = 0;
+    uint32_t totalStates = 0;
+    int32_t* transMatrix = 0;
+
+    uint32_t currentState = 0, startPos = 0, startLine = 0, startCol = 0;
+    uint32_t bestAcceptPos = 0;
+    uint32_t bestTokenId = 0, bestChannel = 0;
+    uint32_t bestPriority = 0xFFFFFFFFU;
+    bool_t accepted = 0;
+
+    if (!pIData || pCMe->m_bufferPos >= pCMe->m_bufferEnd) {
+        goto return_eof;
     }
 
-    return ERR_ECO_SUCCESES;
+    globalMap = pIData->pVTbl->get_GlobalAlphabetMap(pIData);
+    classCount = pIData->pVTbl->get_AlphabetClassesCount(pIData, 0);
+    stateMap = pIData->pVTbl->get_StateClassMap(pIData);
+    totalStates = pIData->pVTbl->get_TotalStatesCount(pIData);
+    transMatrix = pIData->pVTbl->get_TransitionMatrix(pIData, 0);
+
+    currentState = pCMe->m_currentState;
+    startPos = pCMe->m_bufferPos;
+    startLine = pCMe->m_line;
+    startCol = pCMe->m_column;
+    bestAcceptPos = startPos;
+
+    while (pCMe->m_bufferPos < pCMe->m_bufferEnd) {
+        unsigned char ch = (unsigned char)pCMe->m_buffer[pCMe->m_bufferPos];
+        uint16_t cls = 0, stateClass = 0;
+        int32_t nextState = 0;
+
+        if (ch == '\n') {
+            pCMe->m_line++;
+            pCMe->m_column = 1;
+        } else {
+            pCMe->m_column++;
+        }
+
+        cls = globalMap[ch];
+        stateClass = stateMap[currentState];
+        nextState = transMatrix[stateClass * classCount + cls];
+
+        if (nextState >= 0 && (uint32_t)nextState < totalStates) {
+            EcoLexicalStateClassInfo info = {0};
+
+            currentState = (uint32_t)nextState;
+            pCMe->m_bufferPos++;
+
+            if (pIData->pVTbl->get_StateClassInfo(pIData, stateMap[currentState], &info) == 0 && info.isFinal) {
+                if (info.priority < bestPriority ||
+                    (info.priority == bestPriority && pCMe->m_bufferPos > bestAcceptPos)) {
+                    bestPriority = info.priority;
+                    bestTokenId = info.tokenId;
+                    bestChannel = info.channelId;
+                    bestAcceptPos = pCMe->m_bufferPos;
+                    accepted = 1;
+                }
+            }
+        } else {
+            break;
+        }
+	}
+
+    if (accepted && bestAcceptPos > startPos) {
+        pToken = (CEcoBLA1Token_F82A88F6*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(CEcoBLA1Token_F82A88F6));
+        if (!pToken) goto return_eof;
+
+        memcpy(pToken, &g_xCEcoBLA1Token_F82A88F6, sizeof(CEcoBLA1Token_F82A88F6));
+        pToken->m_pIMem = pCMe->m_pIMem;
+        pToken->m_pIMem->pVTbl->AddRef(pToken->m_pIMem);
+        pToken->m_pISys = pCMe->m_pISys;
+        if (pToken->m_pISys) pToken->m_pISys->pVTbl->AddRef(pToken->m_pISys);
+
+        pToken->m_type = bestTokenId;
+        pToken->m_channel = bestChannel;
+        pToken->m_line = startLine;
+        pToken->m_column = startCol;
+        pToken->m_length = bestAcceptPos - startPos;
+
+        pToken->m_lexeme = (char_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, pToken->m_length + 1);
+        if (pToken->m_lexeme) {
+            memcpy(pToken->m_lexeme, pCMe->m_buffer + startPos, pToken->m_length);
+            pToken->m_lexeme[pToken->m_length] = '\0';
+        }
+
+        pToken->m_isEOF = 0;
+        pToken->m_isError = 0;
+
+        pCMe->m_bufferPos = bestAcceptPos;
+        pCMe->m_currentState = pIData->pVTbl->get_InitialState(pIData);
+
+        return (IEcoLexicalAnalyzer1TokenPtr_t)pToken;
+    }
+
+return_eof:
+    pToken = (CEcoBLA1Token_F82A88F6*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(CEcoBLA1Token_F82A88F6));
+    if (pToken) {
+        memcpy(pToken, &g_xCEcoBLA1Token_F82A88F6, sizeof(CEcoBLA1Token_F82A88F6));
+        pToken->m_pIMem = pCMe->m_pIMem;
+        pToken->m_pIMem->pVTbl->AddRef(pToken->m_pIMem);
+        if (pCMe->m_pISys) {
+            pToken->m_pISys = pCMe->m_pISys;
+            pToken->m_pISys->pVTbl->AddRef(pToken->m_pISys);
+        }
+        pToken->m_type = 0xFFFFFFFE;
+        pToken->m_isEOF = 1;
+        pToken->m_isError = 0;
+        pToken->m_lexeme = 0;
+        pToken->m_length = 0;
+        pToken->m_line = pCMe->m_line;
+        pToken->m_column = pCMe->m_column;
+    }
+    return (IEcoLexicalAnalyzer1TokenPtr_t)pToken;
 }
 
 static int16_t ECOCALLMETHOD CEcoBLA1Scanner_F82A88F6_Recover(IEcoLexicalAnalyzer1ScannerPtr_t me, IEcoLexicalAnalyzer1TokenPtr_t pIToken) {
@@ -318,14 +430,27 @@ static int16_t ECOCALLMETHOD initCEcoBLA1Scanner_F82A88F6(/*in*/ CEcoBLA1Scanner
         result = ERR_ECO_GET_MEMORY_ALLOCATOR;
     }
 
-
-
     /* Freeing */
     pIBus->pVTbl->Release(pIBus);
 
+    /* Initialize new fields to safe defaults */
+    pCMe->m_pIFile = 0;
+    pCMe->m_pIData = 0;
+    pCMe->m_filePos = 0;
+    pCMe->m_line = 1;
+    pCMe->m_column = 1;
+    pCMe->m_buffer = 0;
+    pCMe->m_bufferSize = 0;
+    pCMe->m_bufferPos = 0;
+    pCMe->m_bufferEnd = 0;
+    pCMe->m_currentState = 0;
+    pCMe->m_stateStack = 0;
+    pCMe->m_stateStackSize = 0;
+    pCMe->m_stateStackTop = -1;
+    pCMe->m_channelMask = 0xFFFFFFFF; /* include all channels by default */
+
     return result;
 }
-
 /*
  *
  * <summary>
@@ -365,13 +490,32 @@ static void ECOCALLMETHOD deleteCEcoBLA1Scanner_F82A88F6(/* in */ CEcoBLA1Scanne
 
     if (pCMe != 0 ) {
         pIMem = pCMe->m_pIMem;
-        /* Freeing */
-        if ( pCMe->m_Name != 0 ) {
+
+        if (pCMe->m_pIFile != 0) {
+            pCMe->m_pIFile->pVTbl->Close(pCMe->m_pIFile);
+            pCMe->m_pIFile = 0;
+        }
+
+        if (pCMe->m_pIData != 0) {
+            pCMe->m_pIData->pVTbl->Release(pCMe->m_pIData);
+        }
+
+        if (pCMe->m_buffer != 0) {
+            pIMem->pVTbl->Free(pIMem, pCMe->m_buffer);
+        }
+
+        if (pCMe->m_stateStack != 0) {
+            pIMem->pVTbl->Free(pIMem, pCMe->m_stateStack);
+        }
+
+        if (pCMe->m_Name != 0) {
             pIMem->pVTbl->Free(pIMem, pCMe->m_Name);
         }
-        if ( pCMe->m_pISys != 0 ) {
+
+        if (pCMe->m_pISys != 0) {
             pCMe->m_pISys->pVTbl->Release(pCMe->m_pISys);
         }
+
         pIMem->pVTbl->Free(pIMem, pCMe);
         pIMem->pVTbl->Release(pIMem);
     }
@@ -407,7 +551,21 @@ CEcoBLA1Scanner_F82A88F6 g_xCEcoBLA1Scanner_F82A88F6 = {
     createCEcoBLA1Scanner_F82A88F6,
     deleteCEcoBLA1Scanner_F82A88F6,
     1, /* m_cRef */
+    0, /* m_pIMem */
     0, /* m_pISys */
-    0, /* m_pISys */
-    0  /* m_Name */
+    0, /* m_Name */
+	0, /* m_pIFile */            
+    0, /* m_pIData */       
+    0, /* m_filePos */                
+    0, /* m_line */                  
+    0, /* m_column */                
+    0, /* m_buffer */                   
+    0, /* m_bufferSize */             
+    0, /* m_bufferPos */             
+    0, /* m_bufferEnd */            
+    0, /* m_currentState */          
+    0, /* m_stateStack */          
+    0, /* m_stateStackSize */         
+    0, /* m_stateStackTop */         
+    0  /* m_channelMask */
 };

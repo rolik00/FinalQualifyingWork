@@ -21,8 +21,13 @@
 #include "IEcoSystem1.h"
 #include "IEcoInterfaceBus1.h"
 #include "IEcoInterfaceBus1MemExt.h"
+#include "IEcoFileSystemManagement1.h"
+#include "IEcoFileManager1.h"
+#include "IEcoFile1.h"
 #include "CEcoBLA1.h"
 #include "CEcoBLR1RE.h" 
+#include "CEcoBLA1Scanner.h"
+#include "IdEcoFileSystemManagement1.h"
 
 /*
  *
@@ -111,14 +116,131 @@ static uint32_t ECOCALLMETHOD CEcoBLA1_F82A88F6_Release(/* in */ IEcoLexicalAnal
     return pCMe->m_cRef;
 }
 
-static int16_t ECOCALLMETHOD CEcoBLA1_F82A88F6_new_FileScanner(/* in */ IEcoLexicalAnalyzer1Ptr_t me, /* in */ IEcoUnknownPtr_t pIRules, /* in */ char_t* fileName, /* out */ IEcoLexicalAnalyzer1ScannerPtr_t* ppIScanner) {
+static int16_t ECOCALLMETHOD CEcoBLA1_F82A88F6_new_FileScanner(/* in */  IEcoLexicalAnalyzer1Ptr_t me, /* in */  IEcoUnknownPtr_t pIRules, /* in */  char_t* fileName, /* out */ IEcoLexicalAnalyzer1ScannerPtr_t* ppIScanner) {
     CEcoBLA1_F82A88F6* pCMe = (CEcoBLA1_F82A88F6*)me;
+    IEcoInterfaceBus1* pIBus = 0;
+    IEcoLexicalData1* pIData = (IEcoLexicalData1*)pIRules;
+    IEcoFileSystemManagement1* pIFSM = 0;
+    IEcoFileManager1* pIFMgr = 0;
+    IEcoFile1* pIFile = 0;
+    CEcoBLA1Scanner_F82A88F6* pScanner = 0;
+    char *tempBuffer = 0, *newBuf = 0;
+    int16_t result = 0;
+    uint32_t toRead = 0, bytesRead = 0, chunkSize = 4096U;
 
-    if (me == 0) {
+    if (me == 0 || pIRules == 0 || fileName == 0 || ppIScanner == 0) {
         return ERR_ECO_POINTER;
     }
 
+    result = pCMe->m_pISys->pVTbl->QueryInterface(pCMe->m_pISys, &IID_IEcoInterfaceBus1, (void**)&pIBus);
+    if (result != 0 || pIBus == 0) {
+		return result;
+	}
+
+    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoFileSystemManagement1, 0, &IID_IEcoFileSystemManagement1, (void**)&pIFSM);
+    pIBus->pVTbl->Release(pIBus);
+    if (result != 0 || pIFSM == 0) {
+		return result;
+	}
+
+    pIFMgr = pIFSM->pVTbl->get_FileManager(pIFSM);
+    pIFile = pIFMgr->pVTbl->Open(pIFMgr, fileName);
+    if (pIFile == 0) {
+        pIFSM->pVTbl->Release(pIFSM);
+        return -1;
+    }
+
+    pScanner = (CEcoBLA1Scanner_F82A88F6*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(CEcoBLA1Scanner_F82A88F6));
+    if (pScanner == 0) {
+		goto cleanup_error;
+	}
+
+    memcpy(pScanner, &g_xCEcoBLA1Scanner_F82A88F6, sizeof(CEcoBLA1Scanner_F82A88F6));
+
+    pScanner->m_pIMem = pCMe->m_pIMem;
+    pScanner->m_pIMem->pVTbl->AddRef(pScanner->m_pIMem);
+    pScanner->m_pISys = pCMe->m_pISys;
+    if (pScanner->m_pISys) pScanner->m_pISys->pVTbl->AddRef(pScanner->m_pISys);
+    pScanner->m_Name = 0;
+
+    result = pScanner->Init((CEcoBLA1Scanner_F82A88F6Ptr_t)pScanner, (IEcoUnknown*)pScanner->m_pISys);
+    if (result != 0) {
+		goto cleanup_error;
+	}
+
+    pScanner->m_pIData = pIData;
+    pScanner->m_pIData->pVTbl->AddRef(pScanner->m_pIData);
+    pScanner->m_pIFile = 0;
+    pScanner->m_filePos = 0;
+    pScanner->m_line = 1;
+    pScanner->m_column = 1;
+    pScanner->m_currentState = pIData->pVTbl->get_InitialState(pIData);
+    pScanner->m_channelMask = 0xFFFFFFFFU;
+    pScanner->m_stateStack = 0;
+    pScanner->m_stateStackSize = 0;
+    pScanner->m_stateStackTop = -1;
+    pScanner->m_buffer = 0;
+    pScanner->m_bufferSize = 0;
+    pScanner->m_bufferPos = 0;
+    pScanner->m_bufferEnd = 0;
+
+    tempBuffer = (char*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, chunkSize);
+    if (tempBuffer == 0) {
+        result = ERR_ECO_OUTOFMEMORY;
+        goto cleanup_error;
+    }
+
+    while (1) {
+        toRead = chunkSize;
+        result = pIFile->pVTbl->Read(pIFile, tempBuffer, &toRead);
+        bytesRead = toRead;
+
+        if (bytesRead == 0) {
+            result = 0;
+            break;
+        }
+        if (result != 0) {
+            break;
+        }
+
+        newBuf = (char*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, pScanner->m_bufferSize + bytesRead);
+        if (newBuf == 0) {
+            result = ERR_ECO_OUTOFMEMORY;
+            break;
+        }
+
+        if (pScanner->m_buffer != 0) {
+            memcpy(newBuf, pScanner->m_buffer, pScanner->m_bufferSize);
+            pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pScanner->m_buffer);
+        }
+        memcpy(newBuf + pScanner->m_bufferSize, tempBuffer, bytesRead);
+
+        pScanner->m_buffer = newBuf;
+        pScanner->m_bufferSize += bytesRead;
+        pScanner->m_bufferEnd = pScanner->m_bufferSize;
+        newBuf = 0;
+    }
+
+    pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, tempBuffer);
+    tempBuffer = 0;
+
+    if (result != 0) goto cleanup_error;
+
+    pIFile->pVTbl->Close(pIFile);
+    pIFile = 0;
+    pIFSM->pVTbl->Release(pIFSM);
+    pIFSM = 0;
+
+    *ppIScanner = (IEcoLexicalAnalyzer1ScannerPtr_t)pScanner;
     return ERR_ECO_SUCCESES;
+
+cleanup_error:
+    if (tempBuffer) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, tempBuffer);
+    if (newBuf) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, newBuf);
+    if (pScanner) pScanner->Delete((CEcoBLA1Scanner_F82A88F6Ptr_t)pScanner);
+    if (pIFile) pIFile->pVTbl->Close(pIFile);
+    if (pIFSM) pIFSM->pVTbl->Release(pIFSM);
+    return (result != 0) ? result : ERR_ECO_OUTOFMEMORY;
 }
 
 static int16_t ECOCALLMETHOD CEcoBLA1_F82A88F6_LoadRulesFromFile(/* in */ IEcoLexicalAnalyzer1Ptr_t me, /* in */ char_t* fileName, /* out */ IEcoLexicalData1Ptr_t* ppIRules) {
@@ -132,22 +254,61 @@ static int16_t ECOCALLMETHOD CEcoBLA1_F82A88F6_LoadRulesFromFile(/* in */ IEcoLe
 }
 
 static int16_t ECOCALLMETHOD CEcoBLA1_F82A88F6_SaveRulesToFile(/* in */ IEcoLexicalAnalyzer1Ptr_t me, /* in */ IEcoUnknownPtr_t pIRules, /* in */ char_t* fileName) {
-    CEcoBLA1_F82A88F6* pCMe = (CEcoBLA1_F82A88F6*)me;
+    IEcoLexicalData1* pIData;
+	
+	if (!me || !pIRules || !fileName) {
+		return ERR_ECO_POINTER;
+	}
 
-    if (me == 0) {
-        return ERR_ECO_POINTER;
-    }
-
-    return ERR_ECO_SUCCESES;
+    pIData = (IEcoLexicalData1*)pIRules;
+    return pIData->pVTbl->Save(pIData, fileName);
 }
 
 static int16_t ECOCALLMETHOD CEcoBLA1_F82A88F6_new_MemoryScanner(/* in */ IEcoLexicalAnalyzer1Ptr_t me, /* in */ IEcoUnknownPtr_t pIRules, /* in */ voidptr_t buffer, /* in */ uint32_t size, /* out */ IEcoLexicalAnalyzer1ScannerPtr_t* ppIScanner) {
     CEcoBLA1_F82A88F6* pCMe = (CEcoBLA1_F82A88F6*)me;
+    CEcoBLA1Scanner_F82A88F6* pScanner = 0;
+    int16_t result;
 
-    if (me == 0) {
+    if (!me || !pIRules || !buffer || !ppIScanner) {
         return ERR_ECO_POINTER;
+	}
+
+    pScanner = (CEcoBLA1Scanner_F82A88F6*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(CEcoBLA1Scanner_F82A88F6));
+    if (!pScanner) {
+		return ERR_ECO_OUTOFMEMORY;
+	}
+
+    memcpy(pScanner, &g_xCEcoBLA1Scanner_F82A88F6, sizeof(CEcoBLA1Scanner_F82A88F6));
+    pScanner->m_pIMem = pCMe->m_pIMem;
+    pScanner->m_pIMem->pVTbl->AddRef(pScanner->m_pIMem);
+    pScanner->m_pISys = pCMe->m_pISys;
+    if (pScanner->m_pISys) pScanner->m_pISys->pVTbl->AddRef(pScanner->m_pISys);
+
+    result = pScanner->Init((CEcoBLA1Scanner_F82A88F6Ptr_t)pScanner, (IEcoUnknown*)pScanner->m_pISys);
+    if (result != 0) {
+        pScanner->Delete((CEcoBLA1Scanner_F82A88F6Ptr_t)pScanner);
+        return result;
     }
 
+    pScanner->m_pIData = (IEcoLexicalData1*)pIRules;
+    pScanner->m_pIData->pVTbl->AddRef(pScanner->m_pIData);
+    pScanner->m_bufferSize = size;
+    pScanner->m_buffer = (char*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, size);
+    if (!pScanner->m_buffer) {
+        pScanner->Delete((CEcoBLA1Scanner_F82A88F6Ptr_t)pScanner);
+        return ERR_ECO_OUTOFMEMORY;
+    }
+    memcpy(pScanner->m_buffer, buffer, size);
+    pScanner->m_bufferPos = 0;
+    pScanner->m_bufferEnd = size;
+    pScanner->m_filePos = 0;
+    pScanner->m_line = 1;
+    pScanner->m_column = 1;
+    pScanner->m_currentState = pScanner->m_pIData->pVTbl->get_InitialState(pScanner->m_pIData);
+    pScanner->m_channelMask = 0xFFFFFFFF;
+    pScanner->m_pIFile = 0;
+
+    *ppIScanner = (IEcoLexicalAnalyzer1ScannerPtr_t)pScanner;
     return ERR_ECO_SUCCESES;
 }
 
@@ -236,6 +397,7 @@ static int16_t ECOCALLMETHOD CEcoBLA1_F82A88F6_CreateRulesFSM(/* in */ IEcoLexic
 
     return ERR_ECO_SUCCESES;
 }
+
 static int16_t ECOCALLMETHOD CEcoBLA1_F82A88F6_CreateRulesDirect(/* in */ IEcoLexicalAnalyzer1Ptr_t me, /* out */ IEcoLexicalRules1DirectPtr_t* ppIRules) {
     CEcoBLA1_F82A88F6* pCMe = (CEcoBLA1_F82A88F6*)me;
 

@@ -36,7 +36,6 @@
 #include "IdEcoFSM1.h"
 #include "IEcoFSM1.h"
 #include "IdEcoData1.h"
-#include "CEcoBLR1RE.h"
 
 typedef enum IDL_LEXICAL_TOKENS_e {
     TOKEN_NONE = 0,
@@ -58,6 +57,7 @@ typedef enum IDL_LEXICAL_TOKENS_e {
     TOKEN_KW_IN        = 25,
     TOKEN_KW_OUT       = 26,
     TOKEN_KW_VOID      = 27,
+	TOKEN_KW_IMPORT    = 28,
 
     /* Сложные типы данных */
     TOKEN_IDENTIFIER   = 50,
@@ -75,6 +75,8 @@ typedef enum IDL_LEXICAL_TOKENS_e {
     TOKEN_SEMI         = 76, /* ; */
     TOKEN_COMMA        = 77, /* , */
     TOKEN_COLON        = 78, /* : */
+	TOKEN_STAR         = 79,
+	TOKEN_POINT        = 80,
 
     /* Служебные */
     TOKEN_WS           = 100,
@@ -83,322 +85,261 @@ typedef enum IDL_LEXICAL_TOKENS_e {
     TOKEN_ERROR        = 0xFFFFFFFF
 } IDL_LEXICAL_TOKENS_e;
 
-static void Test_AddRuleRE(IEcoLog1* pILog, IEcoLexicalAnalyzer1* pILA) {
-    IEcoLexicalRules1RE* pRules = 0;
+static void TestLexicalAnalyzerFromStringScan(IEcoLog1* pILog, IEcoLexicalAnalyzer1* pILA) {
+    IEcoLexicalRules1REPtr_t pIRules = 0;
     IEcoLexicalData1* pIData = 0;
-    int16_t res;
-    uint32_t count, i, expectedCount = 6;
-	char *exp_state, *got_state;
-		 
-	struct {
-        const char* pattern;
-        uint32_t tokenId;
-        uint32_t priority;
-        const char* state;     
-    } testRules[] = {
-        { "if",         1001, 10, NULL },
-        { "else",       1002, 10, NULL },
-        { "[0-9]+",     2001,  5, NULL },
-        { "([A-Z]|[a-z]|_)([A-Z]|[a-z]|[0-9]|_)*", 3001, 3, NULL },
-        { "\"[^\"]*\"", 4001, 15, "STRING" },
-        { "//[^\\n]*",   5001, 20, "COMMENT" },
-    };
+    IEcoLexicalAnalyzer1Scanner* pScanner = 0;
+    IEcoLexicalAnalyzer1Token* pToken = 0;
+	int16_t result;
 
-    pILog->pVTbl->Info(pILog, "=== Test AddRuleRE ===");
+	pILog->pVTbl->Info(pILog, "\n=== Start test lexical analyzer from string ===");
 
-    res = pILA->pVTbl->CreateRulesRE(pILA, &pRules);
-    if (res != 0 || !pRules) {
-        pILog->pVTbl->InfoFormat(pILog, "Error: CreateRulesRE -> %d\n", res);
-        return;
-    }
+	result = pILA->pVTbl->CreateRulesRE(pILA, &pIRules);
 
-    for (i = 0; i < sizeof(testRules)/sizeof(testRules[0]); i++) {
-        res = pRules->pVTbl->AddRuleRE(pRules, (char*)testRules[i].state, (char*)testRules[i].pattern, testRules[i].tokenId);
+    if (result == 0 && pIRules != 0) {
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "[0-9]+", 1001);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "([A-Z]|[a-z]|_)([A-Z]|[a-z]|[0-9]|_)*", 1002);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\{", 1003);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\}", 1004);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "( |\t|\r|\n)+", 1005);
+		
+		pIRules->pVTbl->SetChannel(pIRules, 1005, 1);
 
-        if (res != 0) {
-            pILog->pVTbl->InfoFormat(pILog, "Error AddRuleRE for %s -> %d\n", testRules[i].pattern, res);
-            pRules->pVTbl->Release(pRules);
-            return;
-        }
+		pIRules->pVTbl->SetPriority(pIRules, 1005, 0);
+		pIRules->pVTbl->SetPriority(pIRules, 1003, 1);
+		pIRules->pVTbl->SetPriority(pIRules, 1004, 1);
+		pIRules->pVTbl->SetPriority(pIRules, 1001, 2);
+		pIRules->pVTbl->SetPriority(pIRules, 1002, 3);
+		pILog->pVTbl->Info(pILog, "Rules added");
 
-		if (testRules[i].priority != 0) {
-			pRules->pVTbl->SetPriority(pRules, testRules[i].tokenId, testRules[i].priority);
-		}
-    }
-
-    count = pRules->pVTbl->get_Count(pRules);
-    if (count != expectedCount) {
-        pILog->pVTbl->InfoFormat(pILog, "FAILED: count of rules do not match (expected %u, got %u)", expectedCount, count);
-        pRules->pVTbl->Release(pRules);
-        return;
-    } else {
-        pILog->pVTbl->InfoFormat(pILog, "PASSED: count of rules match (expected %u, got %u)", expectedCount, count);
-    }
-
-	for (i = 0; i < count; i++) {
-		EcoLexicalRuleREInfo rule;
-		res = pRules->pVTbl->GetRuleInfo(pRules, i, &rule);
-		if (res == 0) {
-			pILog->pVTbl->InfoFormat(pILog, "Check info for rule \"%s\"", testRules[i].pattern);
-			if (rule.tokenId == testRules[i].tokenId) {
-				pILog->pVTbl->InfoFormat(pILog, "	PASSED: expected %u, got %u", testRules[i].tokenId, rule.tokenId);
-			} else {
-				pILog->pVTbl->InfoFormat(pILog, "	FAILED: expected %u, got %u", testRules[i].tokenId, rule.tokenId);
-			}
-			
-			exp_state = testRules[i].state ? testRules[i].state : "null";
-			got_state = rule.stateName ? rule.stateName : "null";
-			if (strcmp(exp_state, got_state) == 0) {
-				pILog->pVTbl->InfoFormat(pILog, "	PASSED: expected %s, got %s", exp_state, got_state);
-			} else {
-				pILog->pVTbl->InfoFormat(pILog, "	FAILED: expected %s, got %s", exp_state, got_state);
-			}
-
-			if (rule.priority == testRules[i].priority) {
-                pILog->pVTbl->InfoFormat(pILog, "	PASSED: expected %u, got %u", testRules[i].priority, rule.priority);
-            } else {
-                pILog->pVTbl->InfoFormat(pILog, "	FAILED: expected %u, got %u", testRules[i].priority, rule.priority);
-            }
-		} 
-	}
-   
-    pRules->pVTbl->Release(pRules);
-
-    pILog->pVTbl->Info(pILog, "=== Test AddRuleRE Finished ===\n");
-}
-
-static void Test_Compile(IEcoLog1* pILog, IEcoLexicalAnalyzer1* pILA) {
-    IEcoLexicalRules1RE* pRules = 0;
-	CEcoBLR1RE_F82A88F6* pImpl;
-    IEcoLexicalData1* pData = 0;
-    int16_t res;
-	int i;
-    const char* patterns[] = {
-        "if",
-        "else",
-        "[0-9]+",
-        "([A-Z]|[a-z]|_)([A-Z]|[a-z]|[0-9]|_)*"
-    };
-    uint32_t tokenIds[] = {1001, 1002, 2001, 3001};
-    uint32_t priorities[] = {10, 10, 5, 3};
-
-	pILog->pVTbl->Info(pILog, "=== Test Compile ===");
-    
-	pILog->pVTbl->Info(pILog, "1. Creation and addition rules");
-	{
-		res = pILA->pVTbl->CreateRulesRE(pILA, &pRules);
-		if (res != 0) {
-			pILog->pVTbl->Info(pILog, "	CreateRulesRE failed");
+        result = pIRules->pVTbl->Compile(pIRules, &pIData);
+		if (result != 0) {
+			pILog->pVTbl->InfoFormat(pILog, "Compile failed with code %d", result);
 			return;
+		} else {
+			pILog->pVTbl->Info(pILog, "Compile successed");
 		}
-
-		for (i = 0; i < 4; i++) {
-			res = pRules->pVTbl->AddRuleRE(pRules, NULL, (char*)patterns[i], tokenIds[i]);
-			if (res != 0) {
-				pILog->pVTbl->InfoFormat(pILog, "	AddRuleRE failed for pattern '%s'", patterns[i]);
-				if (pData)  pData->pVTbl->Release(pData);
-				if (pRules) pRules->pVTbl->Release(pRules);
+		
+		if (result == 0 && pIData != 0) {
+			const char* test_input = "  123   abc { }  abG67";
+			uint32_t input_len = (uint32_t)strlen(test_input);
+			
+			result = pILA->pVTbl->new_MemoryScanner(pILA, (IEcoUnknownPtr_t)pIData, (void*)test_input, input_len, &pScanner);
+			if (result != 0 || pScanner == 0) {
+				pILog->pVTbl->InfoFormat(pILog, "new_MemoryScanner failed with code %d", result);
 				return;
 			}
-			pRules->pVTbl->SetPriority(pRules, tokenIds[i], priorities[i]);
+			pILog->pVTbl->Info(pILog, "Memory scanner created");
+
+			pToken = pScanner->pVTbl->Scan(pScanner);
+			while (pToken && !pToken->pVTbl->IsEOF(pToken)) {
+				uint32_t type = pToken->pVTbl->get_Type(pToken);
+				char_t* lexeme = pToken->pVTbl->get_Lexeme(pToken);
+				uint32_t line = pToken->pVTbl->get_Line(pToken);
+				uint32_t col = pToken->pVTbl->get_Column(pToken);
+				uint32_t channel = pToken->pVTbl->get_Channel(pToken);
+				
+				pILog->pVTbl->InfoFormat(pILog, "Token: type=%u, lexeme='%s', line=%u, col=%u, channel=%u", type, lexeme ? lexeme : "", line, col, channel);
+				
+				pToken->pVTbl->Release(pToken);
+				pToken = 0;
+				pToken = pScanner->pVTbl->Scan(pScanner);
+				
+			}
+			if (pToken) {
+				pToken->pVTbl->Release(pToken);
+				pToken = 0;
+			}
 		}
 	}
-	pILog->pVTbl->Info(pILog, "Creation and addition rules successed");
-    
-	pILog->pVTbl->Info(pILog, "2. Calling the function Compile");
-	{
-		res = pRules->pVTbl->Compile(pRules, &pData);
-		if (res != 0) {
-			pILog->pVTbl->InfoFormat(pILog, "	Compile failed: %d", res);
-			pRules->pVTbl->Release(pRules);
+    if (pScanner) pScanner->pVTbl->Release(pScanner);
+	if (pIData) pIData->pVTbl->Release(pIData);
+    if (pIRules) pIRules->pVTbl->Release(pIRules);
+	pILog->pVTbl->Info(pILog, "=== Finish test lexical analyzer from string ===");
+}
+
+static void TestLexicalAnalyserFromFileScan(IEcoLog1* pILog, IEcoLexicalAnalyzer1* pILA) {
+	IEcoLexicalRules1REPtr_t pIRules = 0;
+    IEcoLexicalData1* pIData = 0;
+    IEcoLexicalAnalyzer1Scanner* pScanner = 0;
+    IEcoLexicalAnalyzer1Token* pToken = 0;
+	int16_t result;
+
+	pILog->pVTbl->Info(pILog, "\n=== Start test lexical analyzer from file ===");
+
+	result = pILA->pVTbl->CreateRulesRE(pILA, &pIRules);
+
+    if (result == 0 && pIRules != 0) {
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\[", TOKEN_LBRACKET);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\]", TOKEN_RBRACKET);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\{", TOKEN_LBRACE);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\}", TOKEN_RBRACE);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\(", TOKEN_LPAREN);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\)", TOKEN_RPAREN);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, ";", TOKEN_SEMI);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, ",", TOKEN_COMMA);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, ":", TOKEN_COLON);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\.", TOKEN_POINT);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\*", TOKEN_STAR);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "interface", TOKEN_KW_INTERFACE);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "uuid", TOKEN_KW_UUID);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "import", TOKEN_KW_IMPORT);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "in", TOKEN_KW_IN);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "out", TOKEN_KW_OUT);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "void", TOKEN_KW_VOID);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\".*\"", TOKEN_STRING);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "[0-9]+", TOKEN_INTEGER);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "([A-Z]|[a-z]|_)([A-Z]|[a-z]|[0-9]|_)*", TOKEN_IDENTIFIER);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "([0-9]|[a-f]|[A-F]){8}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){12}", TOKEN_UUID_LITERAL);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "( |\t|\r|\n)+", TOKEN_WS);
+
+		pIRules->pVTbl->SetChannel(pIRules, TOKEN_WS, 1);
+
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_WS, 0);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_STRING, 1); 
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LBRACKET, 3);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RBRACKET, 3);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LPAREN, 3);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RPAREN, 3);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LBRACE, 3);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RBRACE, 3);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_STAR, 3);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_POINT, 3);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_SEMI, 3);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_COMMA, 3);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_COLON, 3);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_INTERFACE, 4);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_UUID, 4);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_IMPORT, 4);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_IN, 4);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_OUT, 4);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_VOID, 4);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_UUID_LITERAL, 5);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_IDENTIFIER, 10);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_INTEGER, 10);
+		pILog->pVTbl->Info(pILog, "Rules added");
+
+        result = pIRules->pVTbl->Compile(pIRules, &pIData);
+		if (result != 0) {
+			pILog->pVTbl->InfoFormat(pILog, "Compile failed with code %d", result);
 			return;
+		} else {
+			pILog->pVTbl->Info(pILog, "Compile successed");
 		}
-	}
-	pILog->pVTbl->Info(pILog, "Compile succeeded");
 
-	pImpl = (CEcoBLR1RE_F82A88F6*)pRules;
-	if (!pImpl->m_pSuperNFA) {
-        pILog->pVTbl->Info(pILog, "SuperNFA is NULL after compile!");
-        if (pData) pData->pVTbl->Release(pData);
-		pRules->pVTbl->Release(pRules);
-		return;
-    }
-    
-	pILog->pVTbl->Info(pILog, "3. Testing building super-NFA");
-	{
-		IEcoList1* states = pImpl->m_pSuperNFA->pVTbl->get_States(pImpl->m_pSuperNFA);
-		uint32_t stateCount = states->pVTbl->Count(states);
-		uint32_t expectedStateCount = 43;
-		int startFound = 0;
-		
-		for (i = 0; i < stateCount; i++) {
-			IEcoFSM1State* st = (IEcoFSM1State*)states->pVTbl->Item(states, i);
-			if (st->pVTbl->IsInitial(st)) {
-				startFound = 1;
-				break;
+		if (result == 0 && pIData != 0) {
+			result = pILA->pVTbl->new_FileScanner(pILA, (IEcoUnknownPtr_t)pIData, "IEcoBRE1.idl", &pScanner);
+			if (result != 0) {
+				pILog->pVTbl->InfoFormat(pILog, "ERROR: failed when scanning a file with code %d", result);
+				return;
+			} else {
+				pILog->pVTbl->Info(pILog, "SUCCESS scanned a file");
+			}
+
+			pToken = pScanner->pVTbl->Scan(pScanner);
+			while (pToken && !pToken->pVTbl->IsEOF(pToken)) {
+				uint32_t type = pToken->pVTbl->get_Type(pToken);
+				char_t* lexeme = pToken->pVTbl->get_Lexeme(pToken);
+				uint32_t line = pToken->pVTbl->get_Line(pToken);
+				uint32_t col = pToken->pVTbl->get_Column(pToken);
+				uint32_t channel = pToken->pVTbl->get_Channel(pToken);
+				
+				pILog->pVTbl->InfoFormat(pILog, "Token: type=%u, lexeme='%s', line=%u, col=%u, channel=%u", type, lexeme ? lexeme : "", line, col, channel);
+				
+				pToken->pVTbl->Release(pToken);
+				pToken = 0;
+				pToken = pScanner->pVTbl->Scan(pScanner);
+				
+			}
+			if (pToken) {
+				pToken->pVTbl->Release(pToken);
+				pToken = 0;
 			}
 		}
+	}
+    if (pScanner) pScanner->pVTbl->Release(pScanner);
+	if (pIData) pIData->pVTbl->Release(pIData);
+    if (pIRules) pIRules->pVTbl->Release(pIRules);
+	pILog->pVTbl->Info(pILog, "=== Finish test lexical analyzer from file ===");
+}
+
+static void TestLexicalAnalyserSaveToFile(IEcoLog1* pILog, IEcoLexicalAnalyzer1* pILA) {
+	IEcoLexicalRules1REPtr_t pIRules = 0;
+    IEcoLexicalData1* pIData = 0;
+	int16_t result;
+
+	pILog->pVTbl->Info(pILog, "\n=== Start test lexical analyzer save to file ===");
+
+	result = pILA->pVTbl->CreateRulesRE(pILA, &pIRules);
+
+    if (result == 0 && pIRules != 0) {
+        pIRules->pVTbl->AddRuleRE(pIRules, 0, "interface", TOKEN_KW_INTERFACE);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "uuid", TOKEN_KW_UUID);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "version", TOKEN_KW_VERSION);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "typedef", TOKEN_KW_TYPEDEF);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "void", TOKEN_KW_VOID);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "([0-9]|[a-f]|[A-F]){8}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){12}", TOKEN_UUID_LITERAL);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "([A-Z]|[a-z]|_)([A-Z]|[a-z]|[0-9]|_)*", TOKEN_IDENTIFIER);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "[0-9]+", TOKEN_INTEGER);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\[", TOKEN_LBRACKET);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\]", TOKEN_RBRACKET);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\{", TOKEN_LBRACE);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\}", TOKEN_RBRACE);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\(", TOKEN_LPAREN);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\)", TOKEN_RPAREN);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, ";",   TOKEN_SEMI);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, ",",   TOKEN_COMMA);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, ":",   TOKEN_COLON);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\*", TOKEN_STAR);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "( |\t|\r|\n)+", TOKEN_WS);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "/\\*.*\\*/", TOKEN_COMMENT);
+
+		pIRules->pVTbl->SetChannel(pIRules, TOKEN_WS, 1);
+		pIRules->pVTbl->SetChannel(pIRules, TOKEN_COMMENT, 1);
 		
-		if (stateCount == expectedStateCount && startFound) {
-			pILog->pVTbl->InfoFormat(pILog, "	Success SuperNFA build: %u states, start state = %s", stateCount, startFound ? "FOUND" : "MISSING");
-		} else {
-			pILog->pVTbl->InfoFormat(pILog, "	Failed SuperNFA build: %u states, start state = %s", stateCount, startFound ? "FOUND" : "MISSING");
-		}
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_WS, 0);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_INTERFACE, 1);
+        pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_UUID, 1);
+        pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_VOID, 1);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_VERSION, 1);
+        pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_TYPEDEF, 1);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_UUID_LITERAL, 2);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LBRACKET, 2);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RBRACKET, 2);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LBRACE, 2);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RBRACE, 2);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LPAREN, 2);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RPAREN, 2);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_SEMI, 2);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_COMMA, 2);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_COLON, 2);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_INTEGER, 3);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_IDENTIFIER, 4);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_COMMENT, 5);
 		
-		if (!startFound) {
-			if (pData) pData->pVTbl->Release(pData);
-			pRules->pVTbl->Release(pRules);
+		pILog->pVTbl->Info(pILog, "Rules added");
+
+        result = pIRules->pVTbl->Compile(pIRules, &pIData);
+		if (result != 0) {
+			pILog->pVTbl->InfoFormat(pILog, "Compile failed with code %d", result);
 			return;
-		}
-	}
-	pILog->pVTbl->Info(pILog, "Testing building super-NFA finished");
-
-	if (!pImpl->m_pFinalStateAttrs) {
-        pILog->pVTbl->Info(pILog, "FinalStateAttrs list is NULL!");
-        if (pData) pData->pVTbl->Release(pData);
-		pRules->pVTbl->Release(pRules);
-		return;
-    }
-   
-	pILog->pVTbl->Info(pILog, "4. Testing the final states");
-	{
-		uint32_t attrCount = pImpl->m_pFinalStateAttrs->pVTbl->Count(pImpl->m_pFinalStateAttrs);
-		int finalsOk = 1;
-		struct {
-			uint32_t token;
-			uint32_t prio;
-			uint32_t chan;
-		} expectedFinals[] = {
-			{1001, 10, 0},
-			{1002, 10, 0},
-			{2001,  5, 0},
-			{3001,  3, 0}
-		};
-
-		pILog->pVTbl->InfoFormat(pILog, "	Final states count: %u", attrCount);
-
-		if (attrCount != 4) {
-			finalsOk = 0;
 		} else {
-			for (i = 0; i < 4; i++) {
-				FinalStateInfo* info = (FinalStateInfo*)pImpl->m_pFinalStateAttrs->pVTbl->Item(pImpl->m_pFinalStateAttrs, i);
-				if (!info || info->tokenId != expectedFinals[i].token ||
-                info->priority != expectedFinals[i].prio || info->channel != expectedFinals[i].chan) {
-					finalsOk = 0;
-					break;
-				}
-			}
+			pILog->pVTbl->Info(pILog, "Compile successed");
 		}
-
-		if (finalsOk) {
-			pILog->pVTbl->Info(pILog, "	PASSED: Final states attributes check");
-			for (i = 0; i < attrCount; i++) {
-				FinalStateInfo* info = (FinalStateInfo*)pImpl->m_pFinalStateAttrs->pVTbl->Item(pImpl->m_pFinalStateAttrs, i);
-				pILog->pVTbl->InfoFormat(pILog, "	  - token=%u, priority=%u, channel=%u", info->tokenId, info->priority, info->channel);
-			}
-		} else {
-			pILog->pVTbl->Info(pILog, "	FAILED: Final states attributes check");
-			if (pData) pData->pVTbl->Release(pData);
-			pRules->pVTbl->Release(pRules);
-			return;
-		}
-	}
-	pILog->pVTbl->Info(pILog, "Testing the final states finised");
-	
-	pILog->pVTbl->Info(pILog, "5. Testing Regex Matches for each rule");
-	{
-	    int16_t match;
-		struct TestCase { 
-			uint32_t ruleIndex;
-			const char* input;
-			int shouldMatch;
-		};
-		struct TestCase testCases[] = { 
-			{0, "if", 1},
-			{0, "ifx", 0},
-			{0, "i", 0},
-			{1, "else", 1},
-			{1, "els", 0}, 
-			{2, "123", 1}, 
-			{2, "12a3", 0},
-			{3, "var1", 1},
-			{3, "_test", 1},
-			{3, "123var", 0}
-		};
 		
-		for (i = 0; i < 10; i++) {
-			struct TestCase* tc = &testCases[i];
-			RuleRE* pRule = (RuleRE*)pImpl->m_pRulesList->pVTbl->Item(pImpl->m_pRulesList, tc->ruleIndex);
-			if (pRule == 0 || pRule->pNFA == 0) {
-				pILog->pVTbl->InfoFormat(pILog, "	Rule %u has no NFA\n", tc->ruleIndex); 
-				continue; 
+		if (result == 0 && pIData != 0) {
+			result = pILA->pVTbl->SaveRulesToFile(pILA, (IEcoUnknownPtr_t)pIData, "idl_core.bin");
+			if (result != 0) {
+				pILog->pVTbl->InfoFormat(pILog, "ERROR: failed when saving rules to a file with code %d", result);
+				return;
+			} else {
+				pILog->pVTbl->Info(pILog, "SUCCESS saved rules to a file");
 			}
-			if (pRule->pRegex) {
-			    match = pRule->pRegex->pVTbl->IsMatch(pRule->pRegex, (void*)tc->input, strlen(tc->input), 0);
-				pILog->pVTbl->InfoFormat(pILog, "	Test %s: \"%s\" on rule %u (expected %d, got %d)", match == tc->shouldMatch ? "PASSED" : "FAILED", tc->input, tc->ruleIndex, match, tc->shouldMatch); 
-			}
-		} 
-	}
-	pILog->pVTbl->Info(pILog, "Testing Regex Matches finished");
-
-	pILog->pVTbl->Info(pILog, "6. Testing transforming NFA to DFA");
-	{
-	    if (pImpl->m_pDFAStates == 0) {
-            pILog->pVTbl->Info(pILog, "	FAILED: m_pDFAStates pointer is NULL");
-		} else {
-			uint32_t dfaCount = pImpl->m_pDFAStates->pVTbl->Count(pImpl->m_pDFAStates);
-            int acceptingCount = 0;
-            uint32_t i;
-
-            pILog->pVTbl->InfoFormat(pILog, " DFA states generated: %u", dfaCount);
-
-            for (i = 0; i < dfaCount; i++) {
-                DFAState* ds = (DFAState*)pImpl->m_pDFAStates->pVTbl->Item(pImpl->m_pDFAStates, i);
-                if (ds && ds->isAccepting) acceptingCount++;
-            }
-            pILog->pVTbl->InfoFormat(pILog, " Accepting DFA states: %d", acceptingCount);
-
-            if (acceptingCount >= 4) {
-                pILog->pVTbl->Info(pILog, " PASSED: DFA contains accepting states for all added rules");
-            } else {
-                pILog->pVTbl->Info(pILog, " FAILED: Not enough accepting DFA states");
-            }
-
-            if (dfaCount > 0) {
-                DFAState* startDFA = (DFAState*)pImpl->m_pDFAStates->pVTbl->Item(pImpl->m_pDFAStates, 0);
-                if (startDFA && startDFA->nfaStates) {
-                    uint32_t nfaInStart = startDFA->nfaStates->pVTbl->Count(startDFA->nfaStates);
-                    pILog->pVTbl->InfoFormat(pILog, " Start DFA state contains %u NFA states (e-closure ok)", nfaInStart);
-                    if (nfaInStart >= 1) {
-                        pILog->pVTbl->Info(pILog, " PASSED: Start state correctly built");
-                    }
-                }
-            }
-
-            pILog->pVTbl->Info(pILog, " NFA -> DFA conversion test completed successfully");
 		}
 	}
-	pILog->pVTbl->Info(pILog, "Testing transforming NFA to DFA finished");
-
-	pILog->pVTbl->Info(pILog, "7. Testing DFA minimization");
-	{
-		uint32_t beforeCount, afterCount;
-		beforeCount = pImpl->m_pDFAStates->pVTbl->Count(pImpl->m_pDFAStates);
-		pILog->pVTbl->InfoFormat(pILog, " DFA states before minimization: %u", beforeCount);
-		afterCount = pImpl->m_pDFAStates->pVTbl->Count(pImpl->m_pDFAStates);
-		pILog->pVTbl->InfoFormat(pILog, " DFA states after minimization: %u", afterCount);
-		if (afterCount <= beforeCount) {
-			pILog->pVTbl->Info(pILog, " PASSED: minimization reduced or kept state count");
-		} else {
-			pILog->pVTbl->Info(pILog, " FAILED: minimization increased state count");
-		}
-	}
-	pILog->pVTbl->Info(pILog, "Testing DFA finished");
-    
-    if (pData) pData->pVTbl->Release(pData);
-    pRules->pVTbl->Release(pRules);
-
-	pILog->pVTbl->Info(pILog, "=== Test Compile Finished ===\n");
+	if (pIData) pIData->pVTbl->Release(pIData);
+    if (pIRules) pIRules->pVTbl->Release(pIRules);
+	pILog->pVTbl->Info(pILog, "=== Finish test lexical analyzer save to file ===");
 }
 
 /*
@@ -434,7 +375,6 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     IEcoLog1ConsoleAffiliate* pIConsoleAffiliate = 0;
     IEcoLog1Layout* pILayout = 0;
     IEcoLog1SimpleLayout* pISimpleLayout = 0;
-
 
     /* System interface check and creation */
     if (pISys == 0) {
@@ -604,10 +544,13 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
         LINE_COMMENT   = "//" *(%x20-7E) (%x0A / %x0D)
     */
 
-	//Test_AddRuleRE(pILog, pILA);
-	Test_Compile(pILog, pILA);
+    pILog->pVTbl->Info(pILog, "\n=== Start tests ===");
+    TestLexicalAnalyzerFromStringScan(pILog, pILA);
+	TestLexicalAnalyserFromFileScan(pILog, pILA);
+	//TestLexicalAnalyserSaveToFile(pILog, pILA);
+	pILog->pVTbl->Info(pILog, "\n=== Finish tests ===");
+        
 
-    
 
 Release:
 

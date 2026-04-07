@@ -39,6 +39,7 @@ typedef struct EcoLexicalStateClassInfo {
     bool_t isFinal;        /* Признак терминального состояния */
     //EcoLexicalAction_t pfnAction; /* Обработчик Си-кода */
     voidptr_t pContext;    /* Контекст для обработчика */
+	uint32_t priority;
 } EcoLexicalStateClassInfo;
 
 /* IEcoLexicalData1 IID = {DB2E1637-58AA-4447-A843-545A8805D3FE} */

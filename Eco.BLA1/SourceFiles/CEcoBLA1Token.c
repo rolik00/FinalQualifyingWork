@@ -111,28 +111,6 @@ static uint32_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_Release(/* in */ IEcoLexica
     return pCMe->m_cRef;
 }
 
-/*
- *
- * <summary>
- *   MyFunction Function
- * </summary>
- *
- * <description>
- *   Function
- * </description>
- *
- */
-static int16_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_MyFunction(/* in */ IEcoLexicalAnalyzer1TokenPtr_t me, /* in */ char_t* Name, /* out */ char_t** copyName) {
-    CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
-
-    /* Pointer Validation */
-    if (me == 0 ) {
-        return ERR_ECO_POINTER;
-    }
-
-    return ERR_ECO_SUCCESES;
-}
-
 static uint32_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Type(IEcoLexicalAnalyzer1TokenPtr_t me) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
 
@@ -141,9 +119,8 @@ static uint32_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Type(IEcoLexicalAnalyze
         return ERR_ECO_POINTER;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_type;
 }
-
 
 static char_t* ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Lexeme(IEcoLexicalAnalyzer1TokenPtr_t me) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
@@ -153,9 +130,8 @@ static char_t* ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Lexeme(IEcoLexicalAnalyz
         return 0;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_lexeme;
 }
-
 
 static uint16_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Length(IEcoLexicalAnalyzer1TokenPtr_t me) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
@@ -165,9 +141,8 @@ static uint16_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Length(IEcoLexicalAnaly
         return ERR_ECO_POINTER;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_length;
 }
-
 
 static uint32_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_TokenIndex(IEcoLexicalAnalyzer1TokenPtr_t me) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
@@ -180,7 +155,6 @@ static uint32_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_TokenIndex(IEcoLexicalA
     return ERR_ECO_SUCCESES;
 }
 
-
 static uint32_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Line(IEcoLexicalAnalyzer1TokenPtr_t me) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
 
@@ -189,9 +163,8 @@ static uint32_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Line(IEcoLexicalAnalyze
         return ERR_ECO_POINTER;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_line;
 }
-
 
 static uint32_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Column(IEcoLexicalAnalyzer1TokenPtr_t me) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
@@ -201,9 +174,8 @@ static uint32_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Column(IEcoLexicalAnaly
         return ERR_ECO_POINTER;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_column;
 }
-
 
 static uint64_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Position(IEcoLexicalAnalyzer1TokenPtr_t me) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
@@ -213,9 +185,8 @@ static uint64_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Position(IEcoLexicalAna
         return ERR_ECO_POINTER;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_position;
 }
-
 
 static char_t* ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Source(IEcoLexicalAnalyzer1TokenPtr_t me) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
@@ -228,7 +199,6 @@ static char_t* ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Source(IEcoLexicalAnalyz
     return ERR_ECO_SUCCESES;
 }
 
-
 static uint32_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Channel(IEcoLexicalAnalyzer1TokenPtr_t me) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
 
@@ -237,9 +207,8 @@ static uint32_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Channel(IEcoLexicalAnal
         return ERR_ECO_POINTER;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_channel;
 }
-
 
 static char_t* ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_LexerState(IEcoLexicalAnalyzer1TokenPtr_t me) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
@@ -252,7 +221,6 @@ static char_t* ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_LexerState(IEcoLexicalAn
     return ERR_ECO_SUCCESES;
 }
 
-
 static void ECOCALLMETHOD CEcoBLA1Token_F82A88F6_set_Tag(IEcoLexicalAnalyzer1TokenPtr_t me, char_t* tag) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
 
@@ -263,7 +231,6 @@ static void ECOCALLMETHOD CEcoBLA1Token_F82A88F6_set_Tag(IEcoLexicalAnalyzer1Tok
 
     return;
 }
-
 
 static char_t* ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Tag(IEcoLexicalAnalyzer1TokenPtr_t me) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
@@ -276,7 +243,6 @@ static char_t* ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Tag(IEcoLexicalAnalyzer1
     return ERR_ECO_SUCCESES;
 }
 
-
 static void ECOCALLMETHOD CEcoBLA1Token_F82A88F6_set_Value(IEcoLexicalAnalyzer1TokenPtr_t me, voidptr_t value) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
 
@@ -287,7 +253,6 @@ static void ECOCALLMETHOD CEcoBLA1Token_F82A88F6_set_Value(IEcoLexicalAnalyzer1T
 
     return ;
 }
-
 
 static voidptr_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Value(IEcoLexicalAnalyzer1TokenPtr_t me) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
@@ -300,7 +265,6 @@ static voidptr_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Value(IEcoLexicalAnaly
     return ERR_ECO_SUCCESES;
 }
 
-
 static char_t* ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Description(IEcoLexicalAnalyzer1TokenPtr_t me) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
 
@@ -312,7 +276,6 @@ static char_t* ECOCALLMETHOD CEcoBLA1Token_F82A88F6_get_Description(IEcoLexicalA
     return ERR_ECO_SUCCESES;
 }
 
-
 static bool_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_IsEOF(IEcoLexicalAnalyzer1TokenPtr_t me) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
 
@@ -321,9 +284,8 @@ static bool_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_IsEOF(IEcoLexicalAnalyzer1Tok
         return 0;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_isEOF;
 }
-
 
 static bool_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_IsError(IEcoLexicalAnalyzer1TokenPtr_t me) {
     CEcoBLA1Token_F82A88F6* pCMe = (CEcoBLA1Token_F82A88F6*)me;
@@ -333,10 +295,8 @@ static bool_t ECOCALLMETHOD CEcoBLA1Token_F82A88F6_IsError(IEcoLexicalAnalyzer1T
         return 0;
     }
 
-    return ERR_ECO_SUCCESES;
+    return pCMe->m_isError;
 }
-
-
 
 
 /*
@@ -429,7 +389,14 @@ static void ECOCALLMETHOD deleteCEcoBLA1Token_F82A88F6(/* in */ CEcoBLA1Token_F8
 
     if (pCMe != 0 ) {
         pIMem = pCMe->m_pIMem;
+		if (pIMem == 0) {
+			return;
+		}
         /* Freeing */
+		if (pCMe->m_lexeme != 0) {
+			pIMem->pVTbl->Free(pIMem, pCMe->m_lexeme);
+			pCMe->m_lexeme = 0;
+		}
         if ( pCMe->m_Name != 0 ) {
             pIMem->pVTbl->Free(pIMem, pCMe->m_Name);
         }
@@ -476,5 +443,14 @@ CEcoBLA1Token_F82A88F6 g_xCEcoBLA1Token_F82A88F6 = {
     1, /* m_cRef */
     0, /* m_pISys */
     0, /* m_pISys */
-    0  /* m_Name */
+    0, /* m_Name */
+	0, /* m_type */                   
+    0, /* m_lexeme */                  
+    0, /* m_length */                 
+    0, /* m_line */                   
+    0, /* m_column */                 
+    0, /* m_position */               
+    0, /* m_channel */               
+    0, /* m_isEOF */                    
+    0, /* m_isError */ 
 };

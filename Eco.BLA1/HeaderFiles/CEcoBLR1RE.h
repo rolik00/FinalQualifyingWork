@@ -104,6 +104,8 @@ typedef struct CEcoBLR1RE_F82A88F6 {
 	// поля для DFA
 	IEcoList1* m_pDFAStates; 
 
+    uint32_t m_startStateIdx;
+
 } CEcoBLR1RE_F82A88F6;
 
 extern CEcoBLR1RE_F82A88F6 g_xCEcoBLR1RE_F82A88F6;
