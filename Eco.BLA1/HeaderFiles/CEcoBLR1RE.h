@@ -48,24 +48,25 @@ typedef struct FinalStateInfo {
     uint32_t priority;           
     uint32_t channel;            
     EcoLexicalAction_t pfnAction; 
-    voidptr_t pActionContext;   
+    voidptr_t pActionContext;
+	uint32_t ruleIndex;
 } FinalStateInfo;
+
+typedef struct AcceptingToken {
+    uint32_t tokenId;        
+    uint32_t priority;     
+    uint32_t channel;           
+    uint32_t ruleIndex;    
+    EcoLexicalAction_t pfnAction;
+    voidptr_t pActionContext;
+} AcceptingToken;
 
 typedef struct DFAState {
     IEcoList1* nfaStates;          
     bool_t isAccepting;
-    uint32_t bestTokenId;        
-    uint32_t bestPriority;       
-    EcoLexicalAction_t bestAction;
-    voidptr_t bestActionContext;
-    uint32_t bestChannel;
-	IEcoList1* transitions;
+    IEcoList1* acceptingTokens;
+	int32_t* transTable;
 } DFAState;
-
-typedef struct DFATransition {
-	IEcoFSM1Event* pEvent;
-	uint32_t targetStateIdx; 
-} DFATransition;
 
 typedef struct CEcoBLR1RE_F82A88F6* CEcoBLR1RE_F82A88F6Ptr_t;
 
@@ -103,7 +104,6 @@ typedef struct CEcoBLR1RE_F82A88F6 {
 
 	// поля для DFA
 	IEcoList1* m_pDFAStates; 
-
     uint32_t m_startStateIdx;
 
 } CEcoBLR1RE_F82A88F6;

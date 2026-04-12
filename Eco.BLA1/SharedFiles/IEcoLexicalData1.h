@@ -88,7 +88,7 @@ typedef struct IEcoLexicalData1VTbl {
     /* --- ТАБЛИЦА 4: BEHAVIOR (Класс Состояния -> Метаданные) --- */
     
     /* Получить tokenId и Action по ID класса состояния */
-    int16_t (ECOCALLMETHOD *get_StateClassInfo)(IEcoLexicalData1Ptr_t me, uint16_t stateClassId, /* EcoLexicalStateClassInfo* */ void* pInfo);
+    int16_t (ECOCALLMETHOD *get_StateClassInfo)(IEcoLexicalData1Ptr_t me, uint16_t stateClassId, EcoLexicalStateClassInfo* pInfo);
 
     /* --- СЕРИАЛИЗАЦИЯ --- */
     

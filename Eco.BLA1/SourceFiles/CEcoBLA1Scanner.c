@@ -116,17 +116,12 @@ static IEcoLexicalAnalyzer1TokenPtr_t ECOCALLMETHOD CEcoBLA1Scanner_F82A88F6_Sca
     CEcoBLA1Scanner_F82A88F6* pCMe = (CEcoBLA1Scanner_F82A88F6*)me;
     CEcoBLA1Token_F82A88F6* pToken = 0;
     IEcoLexicalData1* pIData = pCMe->m_pIData;
-
-    uint16_t *globalMap = 0, *stateMap = 0;
-    uint16_t classCount = 0;
-    uint32_t totalStates = 0;
-    int32_t* transMatrix = 0;
-
-    uint32_t currentState = 0, startPos = 0, startLine = 0, startCol = 0;
-    uint32_t bestAcceptPos = 0;
-    uint32_t bestTokenId = 0, bestChannel = 0;
-    uint32_t bestPriority = 0xFFFFFFFFU;
-    bool_t accepted = 0;
+    int32_t* transMatrix;
+	uint16_t *globalMap, *stateMap;
+	bool_t accepted = 0;
+	uint16_t classCount;
+    uint32_t currentState, startPos, startLine, startCol, totalStates;
+    uint32_t bestAcceptPos, bestTokenId = 0, bestChannel = 0, bestPriority = 0xFFFFFFFFU;
 
     if (!pIData || pCMe->m_bufferPos >= pCMe->m_bufferEnd) {
         goto return_eof;
@@ -142,12 +137,21 @@ static IEcoLexicalAnalyzer1TokenPtr_t ECOCALLMETHOD CEcoBLA1Scanner_F82A88F6_Sca
     startPos = pCMe->m_bufferPos;
     startLine = pCMe->m_line;
     startCol = pCMe->m_column;
-    bestAcceptPos = startPos;
-
+	bestAcceptPos = startPos;
+  
     while (pCMe->m_bufferPos < pCMe->m_bufferEnd) {
         unsigned char ch = (unsigned char)pCMe->m_buffer[pCMe->m_bufferPos];
-        uint16_t cls = 0, stateClass = 0;
-        int32_t nextState = 0;
+        uint16_t cls = globalMap[ch];
+        uint16_t stateClass = stateMap[currentState];
+        int32_t nextState = transMatrix[stateClass * classCount + cls];
+        EcoLexicalStateClassInfo info = {0};
+
+        if (nextState < 0 || (uint32_t)nextState >= totalStates) {
+            break;                 
+        }
+
+        currentState = (uint32_t)nextState;
+        pCMe->m_bufferPos++;
 
         if (ch == '\n') {
             pCMe->m_line++;
@@ -156,40 +160,43 @@ static IEcoLexicalAnalyzer1TokenPtr_t ECOCALLMETHOD CEcoBLA1Scanner_F82A88F6_Sca
             pCMe->m_column++;
         }
 
-        cls = globalMap[ch];
-        stateClass = stateMap[currentState];
-        nextState = transMatrix[stateClass * classCount + cls];
+        if (pIData->pVTbl->get_StateClassInfo(pIData, currentState, &info) == 0 && info.isFinal) {
+			bool_t better = 0;
+            uint32_t newLen = pCMe->m_bufferPos - startPos;
+            uint32_t bestLen = bestAcceptPos - startPos;
 
-        if (nextState >= 0 && (uint32_t)nextState < totalStates) {
-            EcoLexicalStateClassInfo info = {0};
-
-            currentState = (uint32_t)nextState;
-            pCMe->m_bufferPos++;
-
-            if (pIData->pVTbl->get_StateClassInfo(pIData, stateMap[currentState], &info) == 0 && info.isFinal) {
-                if (info.priority < bestPriority ||
-                    (info.priority == bestPriority && pCMe->m_bufferPos > bestAcceptPos)) {
-                    bestPriority = info.priority;
-                    bestTokenId = info.tokenId;
-                    bestChannel = info.channelId;
-                    bestAcceptPos = pCMe->m_bufferPos;
-                    accepted = 1;
+            if (newLen > bestLen) {
+                better = 1;
+            } else if (newLen == bestLen) {
+                if (info.priority < bestPriority) {
+                    better = 1;
                 }
             }
-        } else {
-            break;
+
+            if (better) {
+                bestPriority = info.priority;
+                bestTokenId  = info.tokenId;
+                bestChannel  = info.channelId;
+                bestAcceptPos = pCMe->m_bufferPos;
+                accepted = 1;
+            }
         }
-	}
+    }
 
     if (accepted && bestAcceptPos > startPos) {
         pToken = (CEcoBLA1Token_F82A88F6*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(CEcoBLA1Token_F82A88F6));
-        if (!pToken) goto return_eof;
+        if (!pToken) {
+			goto return_eof;
+		}
 
         memcpy(pToken, &g_xCEcoBLA1Token_F82A88F6, sizeof(CEcoBLA1Token_F82A88F6));
+
         pToken->m_pIMem = pCMe->m_pIMem;
         pToken->m_pIMem->pVTbl->AddRef(pToken->m_pIMem);
-        pToken->m_pISys = pCMe->m_pISys;
-        if (pToken->m_pISys) pToken->m_pISys->pVTbl->AddRef(pToken->m_pISys);
+        if (pCMe->m_pISys) {
+            pToken->m_pISys = pCMe->m_pISys;
+            pToken->m_pISys->pVTbl->AddRef(pToken->m_pISys);
+        }
 
         pToken->m_type = bestTokenId;
         pToken->m_channel = bestChannel;

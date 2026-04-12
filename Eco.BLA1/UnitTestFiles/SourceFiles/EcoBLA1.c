@@ -158,7 +158,7 @@ static void TestLexicalAnalyzerFromStringScan(IEcoLog1* pILog, IEcoLexicalAnalyz
 	pILog->pVTbl->Info(pILog, "=== Finish test lexical analyzer from string ===");
 }
 
-static void TestLexicalAnalyserFromFileScan(IEcoLog1* pILog, IEcoLexicalAnalyzer1* pILA) {
+static void TestLexicalAnalyserFromFileScan(IEcoLog1* pILog, IEcoLexicalAnalyzer1* pILA, char_t* fileName) {
 	IEcoLexicalRules1REPtr_t pIRules = 0;
     IEcoLexicalData1* pIData = 0;
     IEcoLexicalAnalyzer1Scanner* pScanner = 0;
@@ -187,36 +187,35 @@ static void TestLexicalAnalyserFromFileScan(IEcoLog1* pILog, IEcoLexicalAnalyzer
 		pIRules->pVTbl->AddRuleRE(pIRules, 0, "in", TOKEN_KW_IN);
 		pIRules->pVTbl->AddRuleRE(pIRules, 0, "out", TOKEN_KW_OUT);
 		pIRules->pVTbl->AddRuleRE(pIRules, 0, "void", TOKEN_KW_VOID);
-		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\".*\"", TOKEN_STRING);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\"([A-Z]|[a-z]|[0-9]|_|\\[|\\]| |\\{|\\}|\\(|\\)|;|:|,|\\.|\\*)*\"", TOKEN_STRING);
 		pIRules->pVTbl->AddRuleRE(pIRules, 0, "[0-9]+", TOKEN_INTEGER);
 		pIRules->pVTbl->AddRuleRE(pIRules, 0, "([A-Z]|[a-z]|_)([A-Z]|[a-z]|[0-9]|_)*", TOKEN_IDENTIFIER);
 		pIRules->pVTbl->AddRuleRE(pIRules, 0, "([0-9]|[a-f]|[A-F]){8}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){12}", TOKEN_UUID_LITERAL);
 		pIRules->pVTbl->AddRuleRE(pIRules, 0, "( |\t|\r|\n)+", TOKEN_WS);
 
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_STRING, 5);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_UUID_LITERAL, 6);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_INTERFACE, 10);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_UUID, 10);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_IMPORT, 10);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_IN, 10);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_OUT, 10);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_VOID, 10);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LBRACKET, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RBRACKET, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LBRACE, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RBRACE, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LPAREN, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RPAREN, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_SEMI, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_COMMA, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_COLON, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_STAR, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_POINT, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_INTEGER, 25);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_IDENTIFIER, 25); 
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_WS, 100); 
 		pIRules->pVTbl->SetChannel(pIRules, TOKEN_WS, 1);
-
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_WS, 0);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_STRING, 1); 
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LBRACKET, 3);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RBRACKET, 3);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LPAREN, 3);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RPAREN, 3);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LBRACE, 3);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RBRACE, 3);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_STAR, 3);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_POINT, 3);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_SEMI, 3);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_COMMA, 3);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_COLON, 3);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_INTERFACE, 4);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_UUID, 4);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_IMPORT, 4);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_IN, 4);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_OUT, 4);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_VOID, 4);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_UUID_LITERAL, 5);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_IDENTIFIER, 10);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_INTEGER, 10);
 		pILog->pVTbl->Info(pILog, "Rules added");
 
         result = pIRules->pVTbl->Compile(pIRules, &pIData);
@@ -228,7 +227,7 @@ static void TestLexicalAnalyserFromFileScan(IEcoLog1* pILog, IEcoLexicalAnalyzer
 		}
 
 		if (result == 0 && pIData != 0) {
-			result = pILA->pVTbl->new_FileScanner(pILA, (IEcoUnknownPtr_t)pIData, "IEcoBRE1.idl", &pScanner);
+			result = pILA->pVTbl->new_FileScanner(pILA, (IEcoUnknownPtr_t)pIData, fileName, &pScanner);
 			if (result != 0) {
 				pILog->pVTbl->InfoFormat(pILog, "ERROR: failed when scanning a file with code %d", result);
 				return;
@@ -273,50 +272,52 @@ static void TestLexicalAnalyserSaveToFile(IEcoLog1* pILog, IEcoLexicalAnalyzer1*
 	result = pILA->pVTbl->CreateRulesRE(pILA, &pIRules);
 
     if (result == 0 && pIRules != 0) {
-        pIRules->pVTbl->AddRuleRE(pIRules, 0, "interface", TOKEN_KW_INTERFACE);
-		pIRules->pVTbl->AddRuleRE(pIRules, 0, "uuid", TOKEN_KW_UUID);
-		pIRules->pVTbl->AddRuleRE(pIRules, 0, "version", TOKEN_KW_VERSION);
-		pIRules->pVTbl->AddRuleRE(pIRules, 0, "typedef", TOKEN_KW_TYPEDEF);
-		pIRules->pVTbl->AddRuleRE(pIRules, 0, "void", TOKEN_KW_VOID);
-		pIRules->pVTbl->AddRuleRE(pIRules, 0, "([0-9]|[a-f]|[A-F]){8}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){12}", TOKEN_UUID_LITERAL);
-		pIRules->pVTbl->AddRuleRE(pIRules, 0, "([A-Z]|[a-z]|_)([A-Z]|[a-z]|[0-9]|_)*", TOKEN_IDENTIFIER);
-		pIRules->pVTbl->AddRuleRE(pIRules, 0, "[0-9]+", TOKEN_INTEGER);
-		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\[", TOKEN_LBRACKET);
+        pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\[", TOKEN_LBRACKET);
 		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\]", TOKEN_RBRACKET);
 		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\{", TOKEN_LBRACE);
 		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\}", TOKEN_RBRACE);
 		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\(", TOKEN_LPAREN);
 		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\)", TOKEN_RPAREN);
-		pIRules->pVTbl->AddRuleRE(pIRules, 0, ";",   TOKEN_SEMI);
-		pIRules->pVTbl->AddRuleRE(pIRules, 0, ",",   TOKEN_COMMA);
-		pIRules->pVTbl->AddRuleRE(pIRules, 0, ":",   TOKEN_COLON);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, ";", TOKEN_SEMI);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, ",", TOKEN_COMMA);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, ":", TOKEN_COLON);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\.", TOKEN_POINT);
 		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\\*", TOKEN_STAR);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "interface", TOKEN_KW_INTERFACE);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "uuid", TOKEN_KW_UUID);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "import", TOKEN_KW_IMPORT);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "in", TOKEN_KW_IN);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "out", TOKEN_KW_OUT);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "void", TOKEN_KW_VOID);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "\"([A-Z]|[a-z]|[0-9]|_|\\[|\\]| |\\{|\\}|\\(|\\)|;|:|,|\\.|\\*)*\"", TOKEN_STRING);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "[0-9]+", TOKEN_INTEGER);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "([A-Z]|[a-z]|_)([A-Z]|[a-z]|[0-9]|_)*", TOKEN_IDENTIFIER);
+		pIRules->pVTbl->AddRuleRE(pIRules, 0, "([0-9]|[a-f]|[A-F]){8}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){12}", TOKEN_UUID_LITERAL);
 		pIRules->pVTbl->AddRuleRE(pIRules, 0, "( |\t|\r|\n)+", TOKEN_WS);
-		pIRules->pVTbl->AddRuleRE(pIRules, 0, "/\\*.*\\*/", TOKEN_COMMENT);
 
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_STRING, 5);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_UUID_LITERAL, 6);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_INTERFACE, 10);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_UUID, 10);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_IMPORT, 10);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_IN, 10);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_OUT, 10);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_VOID, 10);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LBRACKET, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RBRACKET, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LBRACE, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RBRACE, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LPAREN, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RPAREN, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_SEMI, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_COMMA, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_COLON, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_STAR, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_POINT, 15);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_INTEGER, 25);
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_IDENTIFIER, 25); 
+		pIRules->pVTbl->SetPriority(pIRules, TOKEN_WS, 100); 
 		pIRules->pVTbl->SetChannel(pIRules, TOKEN_WS, 1);
-		pIRules->pVTbl->SetChannel(pIRules, TOKEN_COMMENT, 1);
-		
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_WS, 0);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_INTERFACE, 1);
-        pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_UUID, 1);
-        pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_VOID, 1);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_VERSION, 1);
-        pIRules->pVTbl->SetPriority(pIRules, TOKEN_KW_TYPEDEF, 1);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_UUID_LITERAL, 2);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LBRACKET, 2);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RBRACKET, 2);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LBRACE, 2);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RBRACE, 2);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_LPAREN, 2);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_RPAREN, 2);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_SEMI, 2);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_COMMA, 2);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_COLON, 2);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_INTEGER, 3);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_IDENTIFIER, 4);
-		pIRules->pVTbl->SetPriority(pIRules, TOKEN_COMMENT, 5);
-		
 		pILog->pVTbl->Info(pILog, "Rules added");
 
         result = pIRules->pVTbl->Compile(pIRules, &pIData);
@@ -546,8 +547,9 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
 
     pILog->pVTbl->Info(pILog, "\n=== Start tests ===");
     TestLexicalAnalyzerFromStringScan(pILog, pILA);
-	TestLexicalAnalyserFromFileScan(pILog, pILA);
-	//TestLexicalAnalyserSaveToFile(pILog, pILA);
+	TestLexicalAnalyserFromFileScan(pILog, pILA, "IEcoBRE1.idl");
+	TestLexicalAnalyserFromFileScan(pILog, pILA, "IEcoBinaryTree1.idl");
+	TestLexicalAnalyserSaveToFile(pILog, pILA);
 	pILog->pVTbl->Info(pILog, "\n=== Finish tests ===");
         
 

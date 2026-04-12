@@ -282,7 +282,7 @@ static int16_t ECOCALLMETHOD CEcoBLR1RE_F82A88F6_AddRuleRE(IEcoLexicalRules1REPt
         }
     }
 	pRule->tokenId = tokenId;
-    pRule->priority = 999999U;
+    pRule->priority = pCMe->m_pRulesList->pVTbl->Count(pCMe->m_pRulesList);
     pRule->channel = 0;
 	pRule->action = 0;
     pRule->actionContext = 0;
@@ -325,7 +325,7 @@ static int16_t ECOCALLMETHOD CEcoBLR1RE_F82A88F6_AddRuleObject(IEcoLexicalRules1
         }
     }
     pRule->tokenId = tokenId;
-    pRule->priority = 999999U;
+    pRule->priority = pCMe->m_pRulesList->pVTbl->Count(pCMe->m_pRulesList);
     pRule->channel = 0;
     pRule->action = 0;
     pRule->actionContext = 0;
@@ -572,7 +572,7 @@ static int16_t ECOCALLMETHOD CEcoBLR1RE_F82A88F6_RemoveRule(IEcoLexicalRules1REP
             if (pRule->stateName) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pRule->stateName);
             if (pRule->pRegex) pRule->pRegex->pVTbl->Release(pRule->pRegex);
 
-            pList->pVTbl->Remove(pList, i);
+            pList->pVTbl->RemoveAt(pList, i);
             return ERR_ECO_SUCCESES;
         }
     }
@@ -638,7 +638,8 @@ static void GetSymbolsFromEvent(IEcoFSM1Event* pEvent, uint8_t* chars, int* coun
 	for (i = 0; i < numSets; i++) {
 		int isComplement, ch;
         IEcoFL1SymbolSet* pSet = (IEcoFL1SymbolSet*)pSymbolSets->pVTbl->Item(pSymbolSets, i);
-        if (!pSet) {
+        
+		if (!pSet) {
 			continue;
 		}
 
@@ -657,6 +658,41 @@ static void GetSymbolsFromEvent(IEcoFSM1Event* pEvent, uint8_t* chars, int* coun
     }
 }
 
+/* Вспомогательная функция: проверяет, содержит ли событие данный символ */
+static bool_t EventContainsChar(IEcoFSM1Event* pEvent, uint8_t ch) {
+	IEcoList1* pSymbolSets;
+	uint32_t numSets, i;
+
+    if (!pEvent || pEvent->pVTbl->IsNull(pEvent)) {
+		return 0;
+	}
+
+    pSymbolSets = pEvent->pVTbl->get_SymbolSets(pEvent);
+    if (!pSymbolSets) {
+		return 0;
+	}
+
+    numSets = pSymbolSets->pVTbl->Count(pSymbolSets);
+    for (i = 0; i < numSets; i++) {
+		bool_t isComplement;
+        IEcoFL1SymbolSet* pSet = (IEcoFL1SymbolSet*)pSymbolSets->pVTbl->Item(pSymbolSets, i);
+        
+		if (!pSet) {
+			continue;
+		}
+
+        isComplement = pSet->pVTbl->IsComplement(pSet);
+        if (isComplement) {
+            return 1;       
+        }
+
+        if (pSet->pVTbl->IsExist(pSet, (byte_t*)&ch, 1, 0)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /* Вспомогательная функция: проверяет, совпадают ли два события по набору символов */
 static bool_t EventsHaveSameSymbols(IEcoFSM1Event* ev1, IEcoFSM1Event* ev2) {
     uint8_t sym1[256], sym2[256];
@@ -666,6 +702,7 @@ static bool_t EventsHaveSameSymbols(IEcoFSM1Event* ev1, IEcoFSM1Event* ev2) {
 	if (!ev1 || !ev2) {
 		return 0;
 	}
+
     if (ev1 == ev2) {
 		return 1;
 	}
@@ -705,6 +742,7 @@ static bool_t EventsHaveSameSymbols(IEcoFSM1Event* ev1, IEcoFSM1Event* ev2) {
  */
 static int16_t BuildSuperNFA(CEcoBLR1RE_F82A88F6* pCMe) {
     RuleRE* pRule = 0;
+	IEcoList1* pSuperStates = 0;
     IEcoFSM1State* pState = 0;
     IEcoFSM1State* pNewState = 0;
     FinalStateInfo* pInfo = 0;
@@ -713,19 +751,13 @@ static int16_t BuildSuperNFA(CEcoBLR1RE_F82A88F6* pCMe) {
     IEcoFSM1Event* pEpsilonEvent = 0;
     IEcoFSM1StateMachine* pSuperNFA = 0;
     IEcoFSM1State* pSuperStartState = 0;
-    IEcoList1 *pRuleAcceptingStates = 0;
     IEcoList1* pRulesList = pCMe->m_pRulesList;
     IEcoList1* pRuleStates = 0;
     IEcoList1* pRuleTransitions = 0;
-	IEcoList1* pSuperStates;
-    IEcoFSM1Transition* pTrans = 0;
-    IEcoFSM1Event* pEvent = 0;
-    IEcoFSM1State* pSource = 0;
-    IEcoFSM1State* pTarget = 0;
-    IEcoFSM1State** ppStateMap = 0; 
+    IEcoFSM1State** ppStateMap = 0;
     int16_t result = 0;
     uint32_t count = 0, i = 0, j = 0, k = 0, stateCount = 0, transCount = 0;
-    uint32_t mapSize = 0;
+    uint32_t ruleIndex;
 
     if (!pCMe || !pRulesList || !pCMe->m_pFinalStateAttrs) {
         return ERR_ECO_POINTER;
@@ -735,15 +767,12 @@ static int16_t BuildSuperNFA(CEcoBLR1RE_F82A88F6* pCMe) {
         pCMe->m_pSuperNFA->pVTbl->Release(pCMe->m_pSuperNFA);
         pCMe->m_pSuperNFA = 0;
     }
-
     if (pCMe->m_pFinalStateAttrs) {
         uint32_t infoCount = pCMe->m_pFinalStateAttrs->pVTbl->Count(pCMe->m_pFinalStateAttrs);
         for (i = 0; i < infoCount; i++) {
             pInfo = (FinalStateInfo*)pCMe->m_pFinalStateAttrs->pVTbl->Item(pCMe->m_pFinalStateAttrs, i);
             if (pInfo) {
-                if (pInfo->pState) {
-					pInfo->pState->pVTbl->Release(pInfo->pState);
-                }
+                if (pInfo->pState) pInfo->pState->pVTbl->Release(pInfo->pState);
                 pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pInfo);
             }
         }
@@ -751,133 +780,112 @@ static int16_t BuildSuperNFA(CEcoBLR1RE_F82A88F6* pCMe) {
     }
 
     result = pCMe->m_pISys->pVTbl->QueryInterface(pCMe->m_pISys, &IID_IEcoInterfaceBus1, (void **)&pIBus);
-    if (result != 0 || pIBus == 0) {
-        return -1;
-    }
+    if (result != 0 || !pIBus) {
+		return -1;
+	}
 
     result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoFSM1, 0, &IID_IEcoFSM1, (void**)&pFSMFactory);
     pIBus->pVTbl->Release(pIBus);
-    if (result != 0 || pFSMFactory == 0) {
-        return -1;
-    }
+    if (result != 0 || !pFSMFactory) {
+		return -1;
+	}
 
     pSuperNFA = pFSMFactory->pVTbl->CreateStateMachine(pFSMFactory, "SuperNFA");
-    if (pSuperNFA == 0) {
+    if (!pSuperNFA) {
         pFSMFactory->pVTbl->Release(pFSMFactory);
         return -1;
     }
 
     pEpsilonEvent = pSuperNFA->pVTbl->AddEvent(pSuperNFA, "ε", -1, 1);
-    if (pEpsilonEvent == 0) {
-        pSuperNFA->pVTbl->Release(pSuperNFA);
-        pFSMFactory->pVTbl->Release(pFSMFactory);
-        return -1;
-    }
-
     pSuperStartState = pSuperNFA->pVTbl->AddState(pSuperNFA, "SuperStart");
-    if (pSuperStartState == 0) {
-        pSuperNFA->pVTbl->Release(pSuperNFA);
-        pFSMFactory->pVTbl->Release(pFSMFactory);
-        return -1;
-    }
-    pSuperStartState->pVTbl->set_Initial(pSuperStartState, 1);
-	
+    if (pSuperStartState) pSuperStartState->pVTbl->set_Initial(pSuperStartState, 1);
+
     count = pRulesList->pVTbl->Count(pRulesList);
-    for (i = 0; i < count; i++) {
-        pRule = (RuleRE*)pRulesList->pVTbl->Item(pRulesList, i);
-        if (!pRule || !pRule->pNFA) {
-            continue;
-        }
+
+    for (ruleIndex = 0; ruleIndex < count; ruleIndex++) {
+        pRule = (RuleRE*)pRulesList->pVTbl->Item(pRulesList, ruleIndex);
+        if (!pRule || !pRule->pNFA) continue;
 
         pRuleStates = pRule->pNFA->pVTbl->get_States(pRule->pNFA);
         if (!pRuleStates) {
-            continue;
-        }
+			continue;
+		}
 
         stateCount = pRuleStates->pVTbl->Count(pRuleStates);
-
         ppStateMap = (IEcoFSM1State**)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, stateCount * sizeof(IEcoFSM1State*));
         if (!ppStateMap) {
-            continue;
-        }
+			continue;
+		}
         memset(ppStateMap, 0, stateCount * sizeof(IEcoFSM1State*));
 
         for (j = 0; j < stateCount; j++) {
-			char_t* stateName;
             char_t newName[256];
 
             pState = (IEcoFSM1State*)pRuleStates->pVTbl->Item(pRuleStates, j);
-            if (!pState) continue;
+            if (!pState) {
+				continue;
+			}
 
-            stateName = pState->pVTbl->get_Name(pState);
-			sprintf(newName, "R%u_%s", i, stateName ? stateName : "state");
+            sprintf(newName, "R%u_S%u", ruleIndex, j);
 
             pNewState = pSuperNFA->pVTbl->AddState(pSuperNFA, newName);
             if (!pNewState) {
-                continue;
-            }
+				continue;
+			}
 
-            if (pState->pVTbl->IsInitial(pState)) {
-                pNewState->pVTbl->set_Initial(pNewState, 1);
-            }
-            if (pState->pVTbl->IsFinal(pState)) {
-                pNewState->pVTbl->set_Final(pNewState, 1);
-            }
+            if (pState->pVTbl->IsInitial(pState)) pNewState->pVTbl->set_Initial(pNewState, 1);
+            if (pState->pVTbl->IsFinal(pState))   pNewState->pVTbl->set_Final(pNewState, 1);
 
             ppStateMap[j] = pNewState;
 
             if (pState == pRule->pStartState) {
-                IEcoFSM1Transition* pTrans = pSuperNFA->pVTbl->AddTransition(pSuperNFA, pEpsilonEvent, pSuperStartState, pNewState);
+                pSuperNFA->pVTbl->AddTransition(pSuperNFA, pEpsilonEvent, pSuperStartState, pNewState);
             }
         }
 
         pRuleTransitions = pRule->pNFA->pVTbl->get_Transitions(pRule->pNFA);
         if (pRuleTransitions) {
             transCount = pRuleTransitions->pVTbl->Count(pRuleTransitions);
-
             for (j = 0; j < transCount; j++) {
-				IEcoFSM1State* pNewSource = 0;
-                IEcoFSM1State* pNewTarget = 0;
-                pTrans = (IEcoFSM1Transition*)pRuleTransitions->pVTbl->Item(pRuleTransitions, j);
-                if (!pTrans) continue;
+				IEcoFSM1State *src, *tgt;
+                IEcoFSM1Event* ev;
+                IEcoFSM1State *newSrc = 0, *newTgt = 0;
+                IEcoFSM1Transition* tr = (IEcoFSM1Transition*)pRuleTransitions->pVTbl->Item(pRuleTransitions, j);
+               
+				if (!tr) {
+					continue;
+				}
 
-                pSource = pTrans->pVTbl->get_Source(pTrans);
-                pTarget = pTrans->pVTbl->get_Target(pTrans);
-                pEvent = pTrans->pVTbl->get_Event(pTrans);
-
-                if (!pSource || !pTarget || !pEvent) continue;
+                src = tr->pVTbl->get_Source(tr);
+                tgt = tr->pVTbl->get_Target(tr);
+                ev  = tr->pVTbl->get_Event(tr);
 
                 for (k = 0; k < stateCount; k++) {
-                    pState = (IEcoFSM1State*)pRuleStates->pVTbl->Item(pRuleStates, k);
-                    if (pState == pSource) pNewSource = ppStateMap[k];
-                    if (pState == pTarget) pNewTarget = ppStateMap[k];
+                    if ((IEcoFSM1State*)pRuleStates->pVTbl->Item(pRuleStates, k) == src) newSrc = ppStateMap[k];
+                    if ((IEcoFSM1State*)pRuleStates->pVTbl->Item(pRuleStates, k) == tgt) newTgt = ppStateMap[k];
                 }
 
-                if (pNewSource && pNewTarget) {
-                    pSuperNFA->pVTbl->AddTransition(pSuperNFA, pEvent, pNewSource, pNewTarget);
+                if (newSrc && newTgt && ev) {
+                    pSuperNFA->pVTbl->AddTransition(pSuperNFA, ev, newSrc, newTgt);
                 }
             }
         }
 
         pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, ppStateMap);
     }
-   
-	pSuperStates = pSuperNFA->pVTbl->get_States(pSuperNFA);
+
+    pSuperStates = pSuperNFA->pVTbl->get_States(pSuperNFA);
     if (pSuperStates) {
-        uint32_t superStateCount = pSuperStates->pVTbl->Count(pSuperStates);
-        
-        for (i = 0; i < superStateCount; i++) {
-			char_t* stateName;
+        uint32_t superCount = pSuperStates->pVTbl->Count(pSuperStates);
+        for (i = 0; i < superCount; i++) {
+			char_t* name;
 
             pState = (IEcoFSM1State*)pSuperStates->pVTbl->Item(pSuperStates, i);
             if (!pState || !pState->pVTbl->IsFinal(pState)) continue;
 
-            stateName = pState->pVTbl->get_Name(pState);
-            if (!stateName) continue;
-
-            if (stateName[0] == 'R') {
-                uint32_t ruleIndex = 0;
-                if (sscanf(stateName, "R%u_", &ruleIndex) == 1 && ruleIndex < count) {
+            name = pState->pVTbl->get_Name(pState);
+            if (name && name[0] == 'R') {
+                if (sscanf(name, "R%u_", &ruleIndex) == 1 && ruleIndex < count) {
                     pRule = (RuleRE*)pRulesList->pVTbl->Item(pRulesList, ruleIndex);
                     if (pRule) {
                         pInfo = (FinalStateInfo*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(FinalStateInfo));
@@ -886,10 +894,11 @@ static int16_t BuildSuperNFA(CEcoBLR1RE_F82A88F6* pCMe) {
                             pInfo->pState = pState;
                             pState->pVTbl->AddRef(pState);
                             pInfo->tokenId = pRule->tokenId;
-                            pInfo->priority = pRule->priority;
+                            pInfo->priority = pRule->priority;     
                             pInfo->channel = pRule->channel;
                             pInfo->pfnAction = pRule->action;
                             pInfo->pActionContext = pRule->actionContext;
+                            pInfo->ruleIndex = ruleIndex;
 
                             pCMe->m_pFinalStateAttrs->pVTbl->Add(pCMe->m_pFinalStateAttrs, pInfo);
                         }
@@ -902,7 +911,7 @@ static int16_t BuildSuperNFA(CEcoBLR1RE_F82A88F6* pCMe) {
     pCMe->m_pSuperNFA = pSuperNFA;
     pFSMFactory->pVTbl->Release(pFSMFactory);
 
-	return ERR_ECO_SUCCESES;
+    return ERR_ECO_SUCCESES;
 }
 
 /* Вспомогательная функция, вычисляющая ε-замыкание для состояния S */
@@ -979,65 +988,111 @@ static DFAState* FindDFAState(CEcoBLR1RE_F82A88F6* pCMe, IEcoList1* nfaSet) {
                 break;
             }
         }
-        if (same) return ds;
+        if (same) {
+			return ds;
+		}
     }
     return 0;
 }
 
 /* Вспомогательная функция, создающая состояние DFA эквивалентное данному множеству состояний NFA */
 static DFAState* CreateDFAState(CEcoBLR1RE_F82A88F6* pCMe, IEcoList1* nfaSet) {
-    DFAState* ds;
-    IEcoFSM1State* st;
-    FinalStateInfo* fi;
-	IEcoInterfaceBus1* pIBus = 0;
-    uint32_t i, j;
-	int16_t result;
-    uint32_t nfaCount;
-    uint32_t finalCount;
+    DFAState* ds = 0;
+    IEcoInterfaceBus1* pIBus = 0;
+    int16_t result = 0;
+    uint32_t i, j, nfaCount, finalCount;
+
+    if (!pCMe || !nfaSet) {
+		return 0;
+	}
 
     ds = (DFAState*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(DFAState));
     if (!ds) {
 		return 0;
 	}
-
     memset(ds, 0, sizeof(DFAState));
+
     ds->nfaStates = nfaSet;
-	if (ds->nfaStates) ds->nfaStates->pVTbl->AddRef(ds->nfaStates);
-    ds->isAccepting = 0;
-    ds->bestPriority = 0xFFFFFFFFU;
-	
-	result = pCMe->m_pISys->pVTbl->QueryInterface(pCMe->m_pISys, &IID_IEcoInterfaceBus1, (void**)&pIBus);
+    nfaSet->pVTbl->AddRef(nfaSet);
+
+    result = pCMe->m_pISys->pVTbl->QueryInterface(pCMe->m_pISys, &IID_IEcoInterfaceBus1, (void**)&pIBus);
     if (result == 0 && pIBus) {
-        result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoList1, 0, &IID_IEcoList1, (void**)&ds->transitions);
+        pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoList1, 0, &IID_IEcoList1, (void**)&ds->acceptingTokens);
         pIBus->pVTbl->Release(pIBus);
     }
-    if (result != 0 || !ds->transitions) {
+
+    if (!ds->acceptingTokens) {
+        if (ds->nfaStates) ds->nfaStates->pVTbl->Release(ds->nfaStates);
         pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, ds);
         return 0;
     }
 
+	ds->transTable = (int32_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, 256 * sizeof(int32_t));
+    if (!ds->transTable) {
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, ds);
+        return 0;
+    }
+    for (i = 0; i < 256; i++) {
+		ds->transTable[i] = -1;
+	}
+
+    ds->isAccepting = 0;
     nfaCount = nfaSet->pVTbl->Count(nfaSet);
     finalCount = pCMe->m_pFinalStateAttrs->pVTbl->Count(pCMe->m_pFinalStateAttrs);
+
     for (i = 0; i < nfaCount; i++) {
-        st = (IEcoFSM1State*)nfaSet->pVTbl->Item(nfaSet, i);
-        if (st->pVTbl->IsFinal(st)) {
-            for (j = 0; j < finalCount; j++) {
-                fi = (FinalStateInfo*)pCMe->m_pFinalStateAttrs->pVTbl->Item(pCMe->m_pFinalStateAttrs, j);
-                if (fi && fi->pState == st) {
+        IEcoFSM1State* st = (IEcoFSM1State*)nfaSet->pVTbl->Item(nfaSet, i);
+        if (!st || !st->pVTbl->IsFinal(st)) {
+			continue;
+		}
+
+        for (j = 0; j < finalCount; j++) {
+            FinalStateInfo* fi = (FinalStateInfo*)pCMe->m_pFinalStateAttrs->pVTbl->Item(pCMe->m_pFinalStateAttrs, j);
+            if (fi && fi->pState == st) {
+                AcceptingToken* token = (AcceptingToken*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(AcceptingToken));
+                if (token) {
+                    memset(token, 0, sizeof(AcceptingToken));
+                    token->tokenId = fi->tokenId;
+                    token->priority = fi->priority;
+                    token->ruleIndex = fi->ruleIndex;
+                    token->channel = fi->channel;
+                    token->pfnAction = fi->pfnAction;
+                    token->pActionContext = fi->pActionContext;
+
+                    ds->acceptingTokens->pVTbl->Add(ds->acceptingTokens, token);
                     ds->isAccepting = 1;
-                    if (fi->priority < ds->bestPriority) {
-                        ds->bestPriority = fi->priority;
-                        ds->bestTokenId = fi->tokenId;
-                        ds->bestAction = fi->pfnAction;
-                        ds->bestActionContext = fi->pActionContext;
-                        ds->bestChannel = fi->channel;
-                    }
-                    break;
                 }
+                break;
             }
         }
     }
+
     return ds;
+}
+
+static void SelectBestAcceptingToken(IEcoList1* acceptingTokens, AcceptingToken* pBest) {
+	AcceptingToken* best = 0;
+    uint32_t i;
+    uint32_t count = acceptingTokens ? acceptingTokens->pVTbl->Count(acceptingTokens) : 0;
+    
+    if (pBest) {
+		memset(pBest, 0, sizeof(AcceptingToken));
+	}
+
+    for (i = 0; i < count; i++) {
+        AcceptingToken* t = (AcceptingToken*)acceptingTokens->pVTbl->Item(acceptingTokens, i);
+        if (!t) {
+			continue;
+		}
+
+        if (best == 0 || t->priority < best->priority || (t->priority == best->priority && t->ruleIndex < best->ruleIndex)) {
+            best = t;
+        }
+    }
+
+    if (best && pBest) {
+        memcpy(pBest, best, sizeof(AcceptingToken));
+    }
 }
 
 /*
@@ -1052,217 +1107,245 @@ static DFAState* CreateDFAState(CEcoBLR1RE_F82A88F6* pCMe, IEcoList1* nfaSet) {
  *
  */
 static int16_t ConvertNFAToDFA(CEcoBLR1RE_F82A88F6* pCMe) {
-    DFAState* newDFA;
-    DFAState* existing;
-    DFAState *ds, *cur;
-    DFAState* pStartDFA;
-    IEcoFSM1Transition* tr;
-    IEcoInterfaceBus1* pIBus;
-    IEcoFSM1Event *ev;
-	IEcoFSM1State *pStartNFA;
-    IEcoFSM1State *nfaState, *target;
-    IEcoList1 *pStartSet, *pAllTrans;
-    IEcoList1 *moveSet, *pNonEpsilonEvents;
-    bool_t found;
+    DFAState* startDFA;
+    IEcoFSM1State* pStartNFA;
+    IEcoInterfaceBus1* pIBus = 0;
+    IEcoList1 *pAllTrans = 0, *pSuperStates, *startSet = 0;
+    int32_t** superTrans = 0;
+    IEcoList1** pEpsilonClosures = 0;
     int16_t result;
-    uint32_t processed;
-    uint32_t i, j, k, l, t;
-    uint32_t oldCount, evCount, nfaCount, transCount;
+    uint32_t i, s, t, oldCount, superCount, tCount, processed = 0;
 
-    if (!pCMe || !pCMe->m_pSuperNFA || !pCMe->m_pDFAStates || !pCMe->m_pFinalStateAttrs) {
+    if (!pCMe || !pCMe->m_pSuperNFA || !pCMe->m_pDFAStates) {
         return ERR_ECO_POINTER;
-	}
+    }
 
     result = pCMe->m_pISys->pVTbl->QueryInterface(pCMe->m_pISys, &IID_IEcoInterfaceBus1, (void**)&pIBus);
     if (result != 0 || !pIBus) {
-		return result;
-	}
+        return result;
+    }
 
     oldCount = pCMe->m_pDFAStates->pVTbl->Count(pCMe->m_pDFAStates);
     for (i = 0; i < oldCount; i++) {
-        ds = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, i);
+        DFAState* ds = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, i);
         if (ds) {
-            if (ds->nfaStates) ds->nfaStates->pVTbl->Release(ds->nfaStates);
+            if (ds->nfaStates) {
+				ds->nfaStates->pVTbl->Release(ds->nfaStates);
+			}
+            if (ds->acceptingTokens) {
+				ds->acceptingTokens->pVTbl->Release(ds->acceptingTokens);
+			}
+            if (ds->transTable) {
+				pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, ds->transTable);
+			}
             pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, ds);
         }
     }
     pCMe->m_pDFAStates->pVTbl->Clear(pCMe->m_pDFAStates);
 
     pAllTrans = pCMe->m_pSuperNFA->pVTbl->get_Transitions(pCMe->m_pSuperNFA);
-    if (!pAllTrans) {
-        pIBus->pVTbl->Release(pIBus);
-        return -1;
-    }
-    transCount = pAllTrans->pVTbl->Count(pAllTrans);
+    pSuperStates = pCMe->m_pSuperNFA->pVTbl->get_States(pCMe->m_pSuperNFA);
+    superCount = pSuperStates->pVTbl->Count(pSuperStates);
 
-    pNonEpsilonEvents = 0;
-    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoList1, 0, &IID_IEcoList1, (void**)&pNonEpsilonEvents);
-    if (result != 0 || !pNonEpsilonEvents) {
-        pAllTrans->pVTbl->Release(pAllTrans);
-        pIBus->pVTbl->Release(pIBus);
-        return -1;
+    superTrans = (int32_t**)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, superCount * sizeof(int32_t*));
+    if (!superTrans) {
+		goto cleanup;
+	}
+
+    for (s = 0; s < superCount; s++) {
+        superTrans[s] = (int32_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, 256 * sizeof(int32_t));
+        if (!superTrans[s]) {
+			goto cleanup;
+		}
+        memset(superTrans[s], -1, 256 * sizeof(int32_t));
     }
 
-    for (t = 0; t < transCount; t++) {
-		IEcoFSM1Transition* tr = (IEcoFSM1Transition*)pAllTrans->pVTbl->Item(pAllTrans, t);
+    tCount = pAllTrans->pVTbl->Count(pAllTrans);
+    for (t = 0; t < tCount; t++) {
+        IEcoFSM1Transition* tr = (IEcoFSM1Transition*)pAllTrans->pVTbl->Item(pAllTrans, t);
         IEcoFSM1Event* ev = tr->pVTbl->get_Event(tr);
         if (ev && !ev->pVTbl->IsNull(ev)) {
-			bool_t alreadyHave = 0;
-            uint32_t e;
-            uint32_t evCount = pNonEpsilonEvents->pVTbl->Count(pNonEpsilonEvents);
-            for (e = 0; e < evCount; e++) {
-				IEcoFSM1Event* existing = (IEcoFSM1Event*)pNonEpsilonEvents->pVTbl->Item(pNonEpsilonEvents, e);
-                if (EventsHaveSameSymbols(ev, existing)) {
-					alreadyHave = 1;
-					break;
-				}
-			}
-			if (!alreadyHave) {
-				pNonEpsilonEvents->pVTbl->Add(pNonEpsilonEvents, ev);
-                ev->pVTbl->AddRef(ev);
-			}
+			uint32_t ch = 0; 
+            uint32_t srcIdx = pSuperStates->pVTbl->IndexOf(pSuperStates, tr->pVTbl->get_Source(tr));
+            uint32_t tgtIdx = pSuperStates->pVTbl->IndexOf(pSuperStates, tr->pVTbl->get_Target(tr));
+
+            for (ch = 0; ch < 256; ch++) {
+                if (EventContainsChar(ev, (uint8_t)ch)) {
+                    superTrans[srcIdx][ch] = (int32_t)tgtIdx;
+                }
+            }
+        }
+    }
+
+    pEpsilonClosures = (IEcoList1**)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, superCount * sizeof(IEcoList1*));
+    if (!pEpsilonClosures) {
+		goto cleanup;
+	}
+    memset(pEpsilonClosures, 0, superCount * sizeof(IEcoList1*));
+
+    for (s = 0; s < superCount; s++) {
+		IEcoFSM1State* st;
+        IEcoList1* closure = 0;
+
+        result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoList1, 0, &IID_IEcoList1, (void**)&closure);
+        if (result != 0 || !closure) {
+			goto cleanup;
 		}
+
+        st = (IEcoFSM1State*)pSuperStates->pVTbl->Item(pSuperStates, s);
+        closure->pVTbl->Add(closure, st);
+        st->pVTbl->AddRef(st);
+
+        ComputeEpsilonClosure(pCMe, pCMe->m_pSuperNFA, pAllTrans, closure);
+        pEpsilonClosures[s] = closure;
+    }
+
+    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoList1, 0, &IID_IEcoList1, (void**)&startSet);
+    if (result != 0 || !startSet) {
+		goto cleanup;
 	}
 
     pStartNFA = FindStartState(pCMe->m_pSuperNFA);
-    if (!pStartNFA) {
-        pNonEpsilonEvents->pVTbl->Release(pNonEpsilonEvents);
-        pAllTrans->pVTbl->Release(pAllTrans);
-        pIBus->pVTbl->Release(pIBus);
-        return -1;
+    if (pStartNFA) {
+        startSet->pVTbl->Add(startSet, pStartNFA);
+        pStartNFA->pVTbl->AddRef(pStartNFA);
     }
+    ComputeEpsilonClosure(pCMe, pCMe->m_pSuperNFA, pAllTrans, startSet);
 
-    pStartSet = 0;
-    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoList1, 0, &IID_IEcoList1, (void**)&pStartSet);
-    if (result != 0 || !pStartSet) {
-        pNonEpsilonEvents->pVTbl->Release(pNonEpsilonEvents);
-        pAllTrans->pVTbl->Release(pAllTrans);
-        pIBus->pVTbl->Release(pIBus);
-        return -1;
-    }
-    pStartSet->pVTbl->Add(pStartSet, pStartNFA);
-    pStartNFA->pVTbl->AddRef(pStartNFA);
-    ComputeEpsilonClosure(pCMe, pCMe->m_pSuperNFA, pAllTrans, pStartSet);
+    startDFA = CreateDFAState(pCMe, startSet);
+    if (!startDFA) {
+		goto cleanup;
+	}
 
-    pStartDFA = CreateDFAState(pCMe, pStartSet);
-    if (!pStartDFA) {
-        pStartSet->pVTbl->Release(pStartSet);
-        pNonEpsilonEvents->pVTbl->Release(pNonEpsilonEvents);
-        pAllTrans->pVTbl->Release(pAllTrans);
-        pIBus->pVTbl->Release(pIBus);
-        return ERR_ECO_OUTOFMEMORY;
-    }
-    pCMe->m_pDFAStates->pVTbl->Add(pCMe->m_pDFAStates, pStartDFA);
-	pCMe->m_startStateIdx = 0;
+    pCMe->m_pDFAStates->pVTbl->Add(pCMe->m_pDFAStates, startDFA);
+    pCMe->m_startStateIdx = 0;
 
-    processed = 0;
     while (processed < pCMe->m_pDFAStates->pVTbl->Count(pCMe->m_pDFAStates)) {
-        cur = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, processed);
-        evCount = pNonEpsilonEvents->pVTbl->Count(pNonEpsilonEvents);
-        for (i = 0; i < evCount; i++) {
-            ev = (IEcoFSM1Event*)pNonEpsilonEvents->pVTbl->Item(pNonEpsilonEvents, i);
-            moveSet = 0;
-            result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoList1, 0, &IID_IEcoList1, (void**)&moveSet);
-            if (result != 0 || !moveSet) continue;
+		uint32_t ch = 0;
+        DFAState* cur = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, processed);
+
+        for (ch = 0; ch < 256; ch++) {
+			uint32_t nfaCount, j;
+            IEcoList1* pNextSet = 0;
+            
+			result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoList1, 0, &IID_IEcoList1, (void**)&pNextSet);
+            if (result != 0 || !pNextSet) {
+				continue;
+			}
 
             nfaCount = cur->nfaStates->pVTbl->Count(cur->nfaStates);
-            for (j = 0; j < nfaCount; j++) {
-                nfaState = (IEcoFSM1State*)cur->nfaStates->pVTbl->Item(cur->nfaStates, j);
-                for (k = 0; k < transCount; k++) {
-                    tr = (IEcoFSM1Transition*)pAllTrans->pVTbl->Item(pAllTrans, k);
-                    if (tr->pVTbl->get_Source(tr) == nfaState && EventsHaveSameSymbols(tr->pVTbl->get_Event(tr), ev)) {
-                        target = tr->pVTbl->get_Target(tr);
-                        found = 0;
-                        for (l = 0; l < moveSet->pVTbl->Count(moveSet); l++) {
-                            if ((IEcoFSM1State*)moveSet->pVTbl->Item(moveSet, l) == target) {
+			for (j = 0; j < nfaCount; j++) {
+                IEcoFSM1State* st = (IEcoFSM1State*)cur->nfaStates->pVTbl->Item(cur->nfaStates, j);
+                uint32_t srcIdx = pSuperStates->pVTbl->IndexOf(pSuperStates, st);
+                int32_t tgtIdx = superTrans[srcIdx][ch];
+
+                if (tgtIdx >= 0) {
+                    uint32_t m = 0;
+                    IEcoList1* tgtClosure = pEpsilonClosures[tgtIdx];
+                    uint32_t tc = tgtClosure->pVTbl->Count(tgtClosure);
+
+                    for (m = 0; m < tc; m++) {
+						bool_t found = 0;
+						uint32_t l = 0;
+                        IEcoFSM1State* tgtSt = (IEcoFSM1State*)tgtClosure->pVTbl->Item(tgtClosure, m);
+                        uint32_t mcount = pNextSet->pVTbl->Count(pNextSet);
+
+                        for (l = 0; l < mcount; l++) {
+                            if ((IEcoFSM1State*)pNextSet->pVTbl->Item(pNextSet, l) == tgtSt) {
                                 found = 1;
                                 break;
                             }
                         }
+
                         if (!found) {
-                            moveSet->pVTbl->Add(moveSet, target);
-                            target->pVTbl->AddRef(target);
+                            pNextSet->pVTbl->Add(pNextSet, tgtSt);
+                            tgtSt->pVTbl->AddRef(tgtSt);
                         }
                     }
                 }
             }
 
-            if (moveSet->pVTbl->Count(moveSet) > 0) {
-                ComputeEpsilonClosure(pCMe, pCMe->m_pSuperNFA, pAllTrans, moveSet);
-                existing = FindDFAState(pCMe, moveSet);
+            if (pNextSet->pVTbl->Count(pNextSet) > 0) {
+                DFAState* existing = FindDFAState(pCMe, pNextSet);
                 if (!existing) {
-                    newDFA = CreateDFAState(pCMe, moveSet); 
-                    if (newDFA) {
-                        pCMe->m_pDFAStates->pVTbl->Add(pCMe->m_pDFAStates, newDFA);
-						existing = newDFA;
-                    } else {
-                        moveSet->pVTbl->Release(moveSet);
-						continue;
+                    DFAState* newDS = CreateDFAState(pCMe, pNextSet);
+                    if (newDS) {
+                        pCMe->m_pDFAStates->pVTbl->Add(pCMe->m_pDFAStates, newDS);
+                        existing = newDS;
                     }
-                } else {
-                    moveSet->pVTbl->Release(moveSet);
                 }
-            } else {
-                moveSet->pVTbl->Release(moveSet);
+                if (existing) {
+                    cur->transTable[ch] = (int32_t)pCMe->m_pDFAStates->pVTbl->IndexOf(pCMe->m_pDFAStates, existing);
+                }
             }
 
-			if (existing && cur && cur->transitions) {
-				DFATransition* tr = (DFATransition*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(DFATransition));
-                if (tr) {
-					tr->pEvent = ev;
-					tr->targetStateIdx = pCMe->m_pDFAStates->pVTbl->IndexOf(pCMe->m_pDFAStates, existing);
-                    cur->transitions->pVTbl->Add(cur->transitions, tr);
-                }
-			}
+            pNextSet->pVTbl->Release(pNextSet);
         }
         processed++;
     }
 
-    pNonEpsilonEvents->pVTbl->Release(pNonEpsilonEvents);
-    pAllTrans->pVTbl->Release(pAllTrans);
-    pIBus->pVTbl->Release(pIBus);
+    if (pEpsilonClosures) {
+        for (s = 0; s < superCount; s++) {
+            if (pEpsilonClosures[s]) {
+                pEpsilonClosures[s]->pVTbl->Release(pEpsilonClosures[s]);
+            }
+        }
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pEpsilonClosures);
+    }
+
+cleanup:
+    if (superTrans) {
+        for (s = 0; s < superCount; s++) {
+            if (superTrans[s]) {
+				pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, superTrans[s]);
+			}
+        }
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, superTrans);
+    }
+    if (pAllTrans) {
+		pAllTrans->pVTbl->Release(pAllTrans);
+	}
+    if (pIBus) {
+		pIBus->pVTbl->Release(pIBus);
+	}
+
     return ERR_ECO_SUCCESES;
 }
 
 /*
- *
  * <summary>
- *   Вспомогательная функция для минимизации DFA
+ * Вспомогательная функция для минимизации DFA
  * </summary>
  *
  * <description>
- *   Минимизирует DFA табличным методом (Table-filling algorithm)
+ * Минимизирует DFA табличным методом (Table-filling algorithm)
  * </description>
- *
  */
 static int16_t MinimizeDFA(CEcoBLR1RE_F82A88F6* pCMe) {
-    IEcoList1* pNewDFAStates = 0;
-    IEcoInterfaceBus1* pIBus = 0;
-    bool_t* distinguishable = 0;
-    uint32_t *newGroup = 0, *groupRep = 0;
-    bool_t changed = 1;
-    int16_t result = 0;
-    uint32_t i, j, s, t;
-    uint32_t numGroups = 0, dfaCount = 0;
-	uint32_t oldStartState = 0;
+	IEcoList1* pNewDFAStates = 0;
+	IEcoInterfaceBus1* pIBus = 0;
+	bool_t* distinguishable;
+	uint32_t *newGroup, *groupRep;
+	bool_t changed;
+    int16_t result;
+	uint32_t i, j, g, dfaCount, numGroups = 0;
 
     if (pCMe == 0 || pCMe->m_pDFAStates == 0) {
         return ERR_ECO_POINTER;
     }
 
     dfaCount = pCMe->m_pDFAStates->pVTbl->Count(pCMe->m_pDFAStates);
-
     if (dfaCount <= 1) {
-        return ERR_ECO_SUCCESES;
+        return ERR_ECO_SUCCESES; 
     }
 
     result = pCMe->m_pISys->pVTbl->QueryInterface(pCMe->m_pISys, &IID_IEcoInterfaceBus1, (void**)&pIBus);
-    if (result != 0 || pIBus == 0) {
-        return result;
-    }
+    if (result != 0 || !pIBus) {
+		return result;
+	}
 
     distinguishable = (bool_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, dfaCount * dfaCount * sizeof(bool_t));
-    if (distinguishable == 0) {
+    if (!distinguishable) {
         pIBus->pVTbl->Release(pIBus);
         return ERR_ECO_OUTOFMEMORY;
     }
@@ -1272,66 +1355,55 @@ static int16_t MinimizeDFA(CEcoBLR1RE_F82A88F6* pCMe) {
         DFAState* ds1 = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, i);
         for (j = i + 1; j < dfaCount; j++) {
             DFAState* ds2 = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, j);
-            bool_t diff = 0;
 
-            if (ds1->isAccepting != ds2->isAccepting) {
-                diff = 1;
-            } else if (ds1->isAccepting && ds2->isAccepting) {
-                if (ds1->bestTokenId != ds2->bestTokenId) {
+            bool_t diff = (ds1->isAccepting != ds2->isAccepting);
+            if (!diff && ds1->isAccepting) {
+                AcceptingToken best1 = {0}, best2 = {0};
+                SelectBestAcceptingToken(ds1->acceptingTokens, &best1);
+                SelectBestAcceptingToken(ds2->acceptingTokens, &best2);
+
+                if (best1.priority != best2.priority || best1.ruleIndex != best2.ruleIndex) {
                     diff = 1;
                 }
             }
-
             distinguishable[i * dfaCount + j] = diff;
             distinguishable[j * dfaCount + i] = diff;
         }
     }
 
-    while (changed) {
-		changed = 0;
-		for (i = 0; i < dfaCount; i++) {
-			for (j = i + 1; j < dfaCount; j++) {
+    do {
+        changed = 0;
+        for (i = 0; i < dfaCount; i++) {
+            for (j = i + 1; j < dfaCount; j++) {
 				DFAState *ds1, *ds2;
-				if (distinguishable[i * dfaCount + j]) {
+				uint32_t ch = 0;
+
+                if (distinguishable[i * dfaCount + j]) {
 					continue;
 				}
 
-				ds1 = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, i);
+                ds1 = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, i);
                 ds2 = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, j);
 
-				if (ds1->transitions && ds2->transitions) {
-					uint32_t tc1 = ds1->transitions->pVTbl->Count(ds1->transitions);
-					uint32_t tc2 = ds2->transitions->pVTbl->Count(ds2->transitions);
+                for (ch = 0; ch < 256; ch++) {
+                    int32_t t1 = ds1->transTable[ch];
+                    int32_t t2 = ds2->transTable[ch];
 
-					for (s = 0; s < tc1; s++) {
-						DFATransition* tr1 = (DFATransition*)ds1->transitions->pVTbl->Item(ds1->transitions, s);
-                        bool_t foundMatch = 0;
-
-                        for (t = 0; t < tc2; t++) {
-							DFATransition* tr2 = (DFATransition*)ds2->transitions->pVTbl->Item(ds2->transitions, t);
-                            if (tr1->pEvent == tr2->pEvent) {
-								uint32_t target1 = tr1->targetStateIdx;
-								uint32_t target2 = tr2->targetStateIdx;
-								if (distinguishable[target1 * dfaCount + target2]) {
-									distinguishable[i * dfaCount + j] = 1;
-									distinguishable[j * dfaCount + i] = 1;
-									changed = 1;
-									foundMatch = 1;
-									break;
-								}
-							}
-						}
-						if (foundMatch) {
-							break;
-						}
-					}
-				}
+                    if (t1 != t2) {
+                        if (t1 < 0 || t2 < 0 || distinguishable[t1 * dfaCount + t2]) {
+                            distinguishable[i * dfaCount + j] = 1;
+                            distinguishable[j * dfaCount + i] = 1;
+                            changed = 1;
+                            break;
+                        }
+                    }
+                }
             }
         }
-    }
-   
+    } while (changed);
+
     newGroup = (uint32_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, dfaCount * sizeof(uint32_t));
-    if (newGroup == 0) {
+    if (!newGroup) {
 		goto cleanup;
 	}
 
@@ -1339,7 +1411,6 @@ static int16_t MinimizeDFA(CEcoBLR1RE_F82A88F6* pCMe) {
 		newGroup[i] = 0xFFFFFFFFU;
 	}
 
-    numGroups = 0;
     for (i = 0; i < dfaCount; i++) {
         if (newGroup[i] != 0xFFFFFFFFU) {
 			continue;
@@ -1352,10 +1423,14 @@ static int16_t MinimizeDFA(CEcoBLR1RE_F82A88F6* pCMe) {
         }
         numGroups++;
     }
-	oldStartState = pCMe->m_startStateIdx;
+
+    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoList1, 0, &IID_IEcoList1, (void**)&pNewDFAStates);
+    if (result != 0 || !pNewDFAStates) {
+		goto cleanup;
+	}
 
     groupRep = (uint32_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, numGroups * sizeof(uint32_t));
-    if (groupRep == 0) {
+    if (!groupRep) {
 		goto cleanup;
 	}
     for (i = 0; i < numGroups; i++) {
@@ -1363,81 +1438,94 @@ static int16_t MinimizeDFA(CEcoBLR1RE_F82A88F6* pCMe) {
 	}
 
     for (i = 0; i < dfaCount; i++) {
-        uint32_t g = newGroup[i];
+        g = newGroup[i];
         if (groupRep[g] == 0xFFFFFFFFU || i < groupRep[g]) {
             groupRep[g] = i;
         }
     }
 
-    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoList1, 0, &IID_IEcoList1, (void**)&pNewDFAStates);
-    if (result != 0 || pNewDFAStates == 0) {
-		goto cleanup;
-	}
-
-    for (i = 0; i < numGroups; i++) {
-        uint32_t repIdx = groupRep[i];
+    for (g = 0; g < numGroups; g++) {
+		uint32_t ch = 0;
+        uint32_t repIdx = groupRep[g];
         DFAState* rep = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, repIdx);
+
         DFAState* newDS = (DFAState*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(DFAState));
-
-        if (newDS == 0) {
-            pNewDFAStates->pVTbl->Release(pNewDFAStates);
-            goto cleanup;
-        }
-
+        if (!newDS) {
+			goto cleanup;
+		}
         memset(newDS, 0, sizeof(DFAState));
 
         newDS->isAccepting = rep->isAccepting;
-        newDS->bestTokenId = rep->bestTokenId;
-        newDS->bestPriority = rep->bestPriority;
-        newDS->bestAction = rep->bestAction;
-        newDS->bestActionContext = rep->bestActionContext;
-        newDS->bestChannel = rep->bestChannel;
-        newDS->nfaStates = 0;
+        newDS->nfaStates = 0;                
+        newDS->transTable = (int32_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, 256 * sizeof(int32_t));
+        if (!newDS->transTable) {
+            pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, newDS);
+            goto cleanup;
+        }
 
-        result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoList1, 0, &IID_IEcoList1, (void**)&newDS->transitions);
-        if (result == 0 && newDS->transitions && rep->transitions) {
-            uint32_t tc = rep->transitions->pVTbl->Count(rep->transitions);
-            for (t = 0; t < tc; t++) {
-                DFATransition* oldTr = (DFATransition*)rep->transitions->pVTbl->Item(rep->transitions, t);
-                if (oldTr && oldTr->pEvent) {
-                    DFATransition* newTr = (DFATransition*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(DFATransition));
-                    if (newTr) {
-                        newTr->pEvent = oldTr->pEvent;
-                        newTr->pEvent->pVTbl->AddRef(newTr->pEvent);
-                        newTr->targetStateIdx = newGroup[oldTr->targetStateIdx];
-                        newDS->transitions->pVTbl->Add(newDS->transitions, newTr);
+        for (ch = 0; ch < 256; ch++) {
+            int32_t oldTarget = rep->transTable[ch];
+            newDS->transTable[ch] = (oldTarget >= 0) ? (int32_t)newGroup[oldTarget] : -1;
+        }
+
+        if (rep->acceptingTokens) {
+            result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoList1, 0, &IID_IEcoList1, (void**)&newDS->acceptingTokens);
+            if (result == 0 && newDS->acceptingTokens) {
+				uint32_t t = 0;
+                uint32_t cnt = rep->acceptingTokens->pVTbl->Count(rep->acceptingTokens);
+                for (t = 0; t < cnt; t++) {
+                    AcceptingToken* src = (AcceptingToken*)rep->acceptingTokens->pVTbl->Item(rep->acceptingTokens, t);
+                    AcceptingToken* dst = (AcceptingToken*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(AcceptingToken));
+                    if (dst) {
+                        memcpy(dst, src, sizeof(AcceptingToken));
+                        newDS->acceptingTokens->pVTbl->Add(newDS->acceptingTokens, dst);
                     }
                 }
             }
         }
+
         pNewDFAStates->pVTbl->Add(pNewDFAStates, newDS);
     }
 
     for (i = 0; i < dfaCount; i++) {
         DFAState* ds = (DFAState*)pCMe->m_pDFAStates->pVTbl->Item(pCMe->m_pDFAStates, i);
         if (ds) {
-            if (ds->nfaStates)   ds->nfaStates->pVTbl->Release(ds->nfaStates);
-            if (ds->transitions) ds->transitions->pVTbl->Release(ds->transitions);
+            if (ds->nfaStates) {
+				ds->nfaStates->pVTbl->Release(ds->nfaStates);
+			}
+            if (ds->acceptingTokens) {
+				ds->acceptingTokens->pVTbl->Release(ds->acceptingTokens);
+			}
+            if (ds->transTable) {
+				pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, ds->transTable);
+			}
             pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, ds);
         }
     }
     pCMe->m_pDFAStates->pVTbl->Clear(pCMe->m_pDFAStates);
     pCMe->m_pDFAStates->pVTbl->Release(pCMe->m_pDFAStates);
+
     pCMe->m_pDFAStates = pNewDFAStates;
 
-	if (oldStartState < dfaCount) {
-        pCMe->m_startStateIdx = newGroup[oldStartState];
-    } else {
-        pCMe->m_startStateIdx = 0;
+    if (pCMe->m_startStateIdx < dfaCount) {
+        pCMe->m_startStateIdx = newGroup[pCMe->m_startStateIdx];
     }
 
 cleanup:
-    if (distinguishable) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, distinguishable);
-    if (newGroup) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, newGroup);
-    if (groupRep) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, groupRep);
-    if (pIBus) pIBus->pVTbl->Release(pIBus);
+    if (distinguishable) {
+		pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, distinguishable);
+	}
+    if (newGroup) {
+		pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, newGroup);
+	}
+    if (groupRep) {
+		pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, groupRep);
+	}
+    if (pIBus) {
+		pIBus->pVTbl->Release(pIBus);
+	}
 
-    return result;
+    return ERR_ECO_SUCCESES;
 }
 
 /*
@@ -1451,149 +1539,77 @@ cleanup:
  * </description>
  *
  */
-static int16_t CompressToIEcoLexicalData1(CEcoBLR1RE_F82A88F6* pCMe, IEcoLexicalData1Ptr_t* ppIData) {
-	int16_t result = ERR_ECO_SUCCESES;
-    IEcoList1* pDFAStates = pCMe->m_pDFAStates;
-    uint32_t dfaCount = 0;
-    DFAState** pStates = 0;
-    uint32_t i, j, s;
-    uint16_t alphabetClassesCount = 0;
-    uint16_t* globalAlphabetMap = 0;
-    int32_t* transitionMatrix = 0;
-    uint16_t* stateClassMap = 0;
-    EcoLexicalStateClassInfo* stateClassInfo = 0;
-    CEcoBLD1_F82A88F6* pLexData = 0;
-	int32_t** fullTrans;
-	uint32_t* signatures;
-	uint16_t* charToClass;
-	uint32_t matrixSize;
-	static const uint8_t whitespace[] = { ' ', '\t', '\r', '\n' };
-    uint32_t wsCount = sizeof(whitespace) / sizeof(whitespace[0]);
 
-    /* Проверка указателей */
+static int16_t CompressToIEcoLexicalData1(CEcoBLR1RE_F82A88F6* pCMe, IEcoLexicalData1Ptr_t* ppIData) {
+    DFAState** pStates = 0;
+    CEcoBLD1_F82A88F6* pLexData = 0;
+    IEcoList1* pDFAStates = pCMe->m_pDFAStates;
+    EcoLexicalStateClassInfo* stateClassInfo = 0;
+    int32_t** fullTrans = 0;
+    uint32_t* signatures = 0;
+    int32_t* transitionMatrix = 0;
+    uint16_t *globalAlphabetMap = 0, *stateClassMap = 0, *charToClass = 0;
+	uint32_t dfaCount = 0;
+    int16_t result = ERR_ECO_SUCCESES;
+    uint32_t i, j, s, matrixSize;
+    uint16_t alphabetClassesCount = 0;
+
     if (!pCMe || !pDFAStates || !ppIData) {
         return ERR_ECO_POINTER;
     }
-
     *ppIData = 0;
+
     dfaCount = pDFAStates->pVTbl->Count(pDFAStates);
     if (dfaCount == 0) {
-        return -1;
-    }
+		return -1;
+	}
 
     pStates = (DFAState**)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, dfaCount * sizeof(DFAState*));
-    if (!pStates) return ERR_ECO_OUTOFMEMORY;
+    if (!pStates) {
+		return ERR_ECO_OUTOFMEMORY;
+	}
     for (i = 0; i < dfaCount; i++) {
         pStates[i] = (DFAState*)pDFAStates->pVTbl->Item(pDFAStates, i);
-		if (!pStates[i]) {
-            pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
-            return -1;
-        }
     }
 
     fullTrans = (int32_t**)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, dfaCount * sizeof(int32_t*));
     if (!fullTrans) {
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
-        return ERR_ECO_OUTOFMEMORY;
-    }
+		goto cleanup;
+	}
+
     for (i = 0; i < dfaCount; i++) {
         fullTrans[i] = (int32_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, 256 * sizeof(int32_t));
         if (!fullTrans[i]) {
-            for (j = 0; j < i; j++) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans[j]);
-            pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans);
-            pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
-            return ERR_ECO_OUTOFMEMORY;
-        }
-        for (j = 0; j < 256; j++) fullTrans[i][j] = -1;
+			goto cleanup;
+		}
+        for (j = 0; j < 256; j++) {
+			fullTrans[i][j] = -1;
+		}
     }
 
     for (i = 0; i < dfaCount; i++) {
-        DFAState* state = pStates[i];
-		uint32_t transCount;
-
-        if (!state->transitions) {
-				continue;
-		}
-
-        transCount = state->transitions->pVTbl->Count(state->transitions);
-        for (j = 0; j < transCount; j++) {
-			uint8_t symbols[256];
-			int numSymbols = 0, si = 0;
-            DFATransition* tr = (DFATransition*)state->transitions->pVTbl->Item(state->transitions, j);
-           
-			if (!tr || !tr->pEvent) {
-				continue;
-			}
-
-            GetSymbolsFromEvent(tr->pEvent, symbols, &numSymbols);
-			for (si = 0; si < numSymbols; si++) {
-				int ch = symbols[si];
-				if (ch >= 0 && ch < 256) {
-					uint32_t newTarget = (uint32_t)tr->targetStateIdx;
-					uint32_t oldTarget = (uint32_t)fullTrans[i][ch];
-					if (oldTarget == 0xFFFFFFFFU || pStates[newTarget]->bestPriority < pStates[oldTarget]->bestPriority) {
-						fullTrans[i][ch] = (int32_t)newTarget;
-					}
-				}
-			}
-        }
-    }
-
-	/* Небольшой костыль: любой токен, у которого priority != 0, НЕ может продолжаться на whitespace */
-	for (s = 0; s < dfaCount; s++) {
-        DFAState* ds = pStates[s];
-        if (ds && ds->isAccepting && ds->bestPriority != 0) { 
-			uint32_t w = 0;
-            for (w = 0; w < wsCount; w++) {
-				fullTrans[s][whitespace[w]] = -1;
-			}
-        }
-    }
-	
-	for (s = 0; s < dfaCount; s++) {
-		DFAState* ds = pStates[s];
-		if (ds && ds->isAccepting && ds->bestChannel == 1) {
-			int ch = 0; 
-			for (ch = 0; ch < 256; ch++) {
-				bool_t isWS = 0;
-				uint32_t w = 0;
-				for (w = 0; w < wsCount; w++) {
-					if (ch == whitespace[w]) { 
-						isWS = 1; 
-						break; 
-					}
-				}
-				if (!isWS) {
-					fullTrans[s][ch] = -1; 
-				}
-			}
+		DFAState* state = pStates[i];
+		for (j = 0; j < 256; j++) {
+			fullTrans[i][j] = state->transTable[j];
 		}
 	}
 
     signatures = (uint32_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, 256 * sizeof(uint32_t));
     if (!signatures) {
-        for (i = 0; i < dfaCount; i++) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans[i]);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
-        return ERR_ECO_OUTOFMEMORY;
-    }
-
+		goto cleanup;
+	}
     for (i = 0; i < 256; i++) {
         uint32_t hash = 2166136261U;
         for (j = 0; j < dfaCount; j++) {
-            hash = (hash ^ (uint32_t)(fullTrans[j][i] + 1)) * 16777619U; 
+            hash = (hash ^ (uint32_t)(fullTrans[j][i] + 1)) * 16777619U;
         }
         signatures[i] = hash;
     }
 
     charToClass = (uint16_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, 256 * sizeof(uint16_t));
     if (!charToClass) {
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, signatures);
-        for (i = 0; i < dfaCount; i++) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans[i]);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
-        return ERR_ECO_OUTOFMEMORY;
-    }
+		goto cleanup;
+	}
 
     alphabetClassesCount = 0;
     for (i = 0; i < 256; i++) {
@@ -1605,103 +1621,81 @@ static int16_t CompressToIEcoLexicalData1(CEcoBLR1RE_F82A88F6* pCMe, IEcoLexical
             }
         }
         if (classId == 0xFFFF) {
-            classId = alphabetClassesCount++;
-        }
+			classId = alphabetClassesCount++;
+		}
         charToClass[i] = classId;
     }
 
     globalAlphabetMap = (uint16_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, 256 * sizeof(uint16_t));
     if (!globalAlphabetMap) {
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, charToClass);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, signatures);
-        for (i = 0; i < dfaCount; i++) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans[i]);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
-        return ERR_ECO_OUTOFMEMORY;
-    }
+		goto cleanup;
+	}
     for (i = 0; i < 256; i++) {
-        globalAlphabetMap[i] = charToClass[i];
-    }
+		globalAlphabetMap[i] = charToClass[i];
+	}
 
     matrixSize = dfaCount * alphabetClassesCount;
     transitionMatrix = (int32_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, matrixSize * sizeof(int32_t));
     if (!transitionMatrix) {
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, globalAlphabetMap);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, charToClass);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, signatures);
-        for (i = 0; i < dfaCount; i++) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans[i]);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
-        return ERR_ECO_OUTOFMEMORY;
-    }
+		goto cleanup;
+	}
 
     for (i = 0; i < dfaCount; i++) {
-		uint16_t classId = 0;
-        for (classId = 0; classId < alphabetClassesCount; classId++) {
+        for (j = 0; j < alphabetClassesCount; j++) {
             int32_t target = -1;
-			uint16_t ch = 0;
-            for (ch = 0; ch < 256; ch++) {
-                if (charToClass[ch] == classId) {
-                    target = fullTrans[i][ch];
+            for (s = 0; s < 256; s++) {
+                if (charToClass[s] == j) {
+                    target = fullTrans[i][s];
                     break;
                 }
             }
-            transitionMatrix[i * alphabetClassesCount + classId] = target;
+            transitionMatrix[i * alphabetClassesCount + j] = target;
         }
     }
 
-    pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, charToClass);
-    pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, signatures);
-    for (i = 0; i < dfaCount; i++) pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans[i]);
-    pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans);
-
     stateClassInfo = (EcoLexicalStateClassInfo*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, dfaCount * sizeof(EcoLexicalStateClassInfo));
     if (!stateClassInfo) {
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, transitionMatrix);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, globalAlphabetMap);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
-        return ERR_ECO_OUTOFMEMORY;
-    }
+		goto cleanup;
+	}
+    memset(stateClassInfo, 0, dfaCount * sizeof(EcoLexicalStateClassInfo));
 
     for (i = 0; i < dfaCount; i++) {
         DFAState* state = pStates[i];
-        stateClassInfo[i].tokenId = state->bestTokenId;
-        stateClassInfo[i].channelId = state->bestChannel;
         stateClassInfo[i].isFinal = state->isAccepting;
-        stateClassInfo[i].pContext = state->bestActionContext;
-		stateClassInfo[i].priority = state->bestPriority;
+        if (state->isAccepting && state->acceptingTokens) {
+            AcceptingToken best = {0};
+            SelectBestAcceptingToken(state->acceptingTokens, &best);
+            stateClassInfo[i].tokenId = best.tokenId;
+            stateClassInfo[i].channelId = best.channel;
+            stateClassInfo[i].priority = best.priority;
+            stateClassInfo[i].pContext = best.pActionContext;
+        }
     }
 
     stateClassMap = (uint16_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, dfaCount * sizeof(uint16_t));
     if (!stateClassMap) {
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, stateClassInfo);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, transitionMatrix);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, globalAlphabetMap);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
-        return ERR_ECO_OUTOFMEMORY;
-    }
+		goto cleanup;
+	}
     for (i = 0; i < dfaCount; i++) {
-        stateClassMap[i] = (uint16_t)i;
-    }
+		stateClassMap[i] = (uint16_t)i;
+	}
 
     pLexData = (CEcoBLD1_F82A88F6*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(CEcoBLD1_F82A88F6));
     if (!pLexData) {
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, stateClassMap);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, stateClassInfo);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, transitionMatrix);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, globalAlphabetMap);
-        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
-        return ERR_ECO_OUTOFMEMORY;
-    }
-    memcpy(pLexData, &g_xCEcoBLD1_F82A88F6, sizeof(CEcoBLD1_F82A88F6));
+		goto cleanup;
+	}
 
+    memcpy(pLexData, &g_xCEcoBLD1_F82A88F6, sizeof(CEcoBLD1_F82A88F6));
     pLexData->m_pVTblIData = &g_xDB2E163758AA4447A843545A8805D3FEVTbl_F82A88F6;
     pLexData->m_cRef = 1;
-    pLexData->m_pIMem = pCMe->m_pIMem;
-	if (pLexData->m_pIMem) pLexData->m_pIMem->pVTbl->AddRef(pLexData->m_pIMem);
-	pLexData->m_pISys = pCMe->m_pISys;
-	if (pLexData->m_pISys) pLexData->m_pISys->pVTbl->AddRef(pLexData->m_pISys);
-	pLexData->m_Name = 0;
+    pLexData->m_pIMem = pCMe->m_pIMem; 
+	if (pLexData->m_pIMem) {
+		pLexData->m_pIMem->pVTbl->AddRef(pLexData->m_pIMem);
+	}
+    pLexData->m_pISys = pCMe->m_pISys; 
+	if (pLexData->m_pISys) {
+		pLexData->m_pISys->pVTbl->AddRef(pLexData->m_pISys);
+	}
 
     pLexData->m_flags = ECO_LEX_DATA_FL_STATE_CLASSES;
     pLexData->m_initialState = pCMe->m_startStateIdx;
@@ -1714,10 +1708,41 @@ static int16_t CompressToIEcoLexicalData1(CEcoBLR1RE_F82A88F6* pCMe, IEcoLexical
     pLexData->m_pTransitionMatrix = transitionMatrix;
     pLexData->m_pStateClassInfoArray = stateClassInfo;
 
-    pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
-
     *ppIData = (IEcoLexicalData1Ptr_t)pLexData;
+    pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
     return ERR_ECO_SUCCESES;
+
+cleanup:
+    if (fullTrans) {
+        for (i = 0; i < dfaCount; i++) {
+			if (fullTrans[i]) {
+				pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans[i]);
+			}
+		}
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, fullTrans);
+    }
+    if (pStates) {
+		pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pStates);
+	}
+    if (signatures) {
+		pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, signatures);
+	}
+    if (charToClass) {
+		pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, charToClass);
+	}
+    if (globalAlphabetMap) {
+		pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, globalAlphabetMap);
+	}
+    if (transitionMatrix) {
+		pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, transitionMatrix);
+	}
+    if (stateClassInfo) {
+		pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, stateClassInfo);
+	}
+    if (stateClassMap) {
+		pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, stateClassMap);
+	}
+    return ERR_ECO_OUTOFMEMORY;
 }
 
 static int16_t ECOCALLMETHOD CEcoBLR1RE_F82A88F6_Compile(IEcoLexicalRules1REPtr_t me, IEcoLexicalData1Ptr_t* ppIData) {

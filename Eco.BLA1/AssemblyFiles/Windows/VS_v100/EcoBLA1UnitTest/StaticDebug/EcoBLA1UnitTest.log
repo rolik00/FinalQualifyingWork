@@ -1,9 +1,9 @@
-﻿Build started 07.04.2026 19:20:50.
+﻿Build started 12.04.2026 17:24:23.
      1>Project "D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BLA1\AssemblyFiles\Windows\VS_v100\EcoBLA1UnitTest.vcxproj" on node 2 (rebuild target(s)).
      1>_PrepareForClean:
          Deleting file "EcoBLA1UnitTest\StaticDebug\EcoBLA1UnitTest.lastbuildstate".
        InitializeBuildStatus:
-         Touching "EcoBLA1UnitTest\StaticDebug\EcoBLA1UnitTest.unsuccessfulbuild".
+         Creating "EcoBLA1UnitTest\StaticDebug\EcoBLA1UnitTest.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
          D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I..\..\..\HeaderFiles /I..\..\..\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BinaryTree1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.String1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BNF1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FSM1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BRE1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.List1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Log1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Data1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.DateTime1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Core1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.InterfaceBus1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.System1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.MemoryManager1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FileSystemManagement1\SharedFiles /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D ECO_WINDOWS /D ECO_WIN32 /D ECO_X86_32 /D UGUID_UTILITY /D ECO_LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"EcoBLA1UnitTest\StaticDebug\\" /Fd"EcoBLA1UnitTest\StaticDebug\vc100.pdb" /Gz /TC /analyze- /errorReport:prompt ..\..\..\UnitTestFiles\SourceFiles\EcoBLA1.c
          EcoBLA1.c
@@ -59,4 +59,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:14.09
+Time Elapsed 00:00:06.09

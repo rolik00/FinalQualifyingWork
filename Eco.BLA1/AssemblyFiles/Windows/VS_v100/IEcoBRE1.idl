@@ -1,4 +1,5 @@
 import "IEcoBase1.idl";
+import "IEcoBinaryTree1.idl";
 
 [
     uuid({25F98342-4A72-4CBB-B270-A4BF6468C8A8})
@@ -6,4 +7,6 @@ import "IEcoBase1.idl";
 interface IEcoBRE1 : IEcoUnknown {
 
     int16_t MyFunction([in] char_t* Name, [out] char_t** CopyName);
-};
+
+    void SecondFunction([in] voidptr_t Name, [out] voidptr_t CopyName);
+}
