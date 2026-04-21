@@ -455,7 +455,7 @@ static int16_t CreateSymbolTransition(NFABuildContext* pCtx,
     IEcoFSM1Event* pEvent = pCtx->pStateMachine->pVTbl->AddEvent(
         pCtx->pStateMachine,
         "literal",
-        (int16_t)symbol,   
+        -1,   
         0    
     );
     
@@ -486,7 +486,7 @@ static int16_t CreateAnyCharTransition(NFABuildContext* pCtx,
 	IEcoFSM1Event* pEvent = pCtx->pStateMachine->pVTbl->AddEvent(
         pCtx->pStateMachine,
         "anychar",
-        256, 
+        -1, 
         0
     );
     
@@ -557,7 +557,7 @@ static int16_t BuildNFANode(NFABuildContext* pCtx,
             pEvent = pCtx->pStateMachine->pVTbl->AddEvent(
                 pCtx->pStateMachine,
                 "range",
-                pData->data.range.start * 1000 + pData->data.range.end,
+                -1,
                 0
             );
 

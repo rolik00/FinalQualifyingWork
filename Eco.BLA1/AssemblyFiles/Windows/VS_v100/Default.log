@@ -1,3 +1,5 @@
-2026-03-19 14:26:15,198368 INFO : 
-=== Test AddRuleRE ===
- 
+2026-04-20 14:41:34,809658 INFO : 
+=== Start tests === 
+2026-04-20 14:41:34,812655 INFO : 
+=== Start test lexical analyzer from string === 
+2026-04-20 14:41:34,815659 INFO : Rules added 

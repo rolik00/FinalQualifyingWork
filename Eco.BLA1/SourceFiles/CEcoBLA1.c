@@ -175,7 +175,7 @@ static int16_t ECOCALLMETHOD CEcoBLA1_F82A88F6_new_FileScanner(/* in */  IEcoLex
     pScanner->m_line = 1;
     pScanner->m_column = 1;
     pScanner->m_currentState = pIData->pVTbl->get_InitialState(pIData);
-    pScanner->m_channelMask = 0xFFFFFFFFU;
+	pScanner->m_channelMask = 0xFFFFFFFFU;
     pScanner->m_stateStack = 0;
     pScanner->m_stateStackSize = 0;
     pScanner->m_stateStackTop = -1;

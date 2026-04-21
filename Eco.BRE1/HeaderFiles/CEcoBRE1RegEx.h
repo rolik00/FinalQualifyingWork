@@ -51,7 +51,7 @@ typedef struct CEcoBRE1RegEx_0E0B7D40 {
     /* Instance initialization */
     int16_t (ECOCALLMETHOD *Init)(/*in*/ CEcoBRE1RegEx_0E0B7D40Ptr_t pCMe, /* in */ IEcoUnknownPtr_t pIUnkSystem);
     /* Instance creation */
-    int16_t (ECOCALLMETHOD *Create)(/*in*/ CEcoBRE1RegEx_0E0B7D40Ptr_t pCMe, /* in */ IEcoUnknownPtr_t pIUnkSystem, /* in */ IEcoUnknownPtr_t pIUnkOuter, /* out */ IEcoRegEx1Ptr_t* ppIRegex);
+    int16_t (ECOCALLMETHOD *Create)(/*in*/ CEcoBRE1RegEx_0E0B7D40Ptr_t pCMe, /* in */ IEcoUnknownPtr_t pIUnkSystem, /* in */ IEcoUnknownPtr_t pIUnkOuter);
     /* Deletion */
     void (ECOCALLMETHOD *Delete)(/*in*/ CEcoBRE1RegEx_0E0B7D40Ptr_t pCMe);
 
