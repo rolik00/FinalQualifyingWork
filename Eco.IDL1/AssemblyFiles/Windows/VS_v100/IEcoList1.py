@@ -1,0 +1,10 @@
+@interface(iid=)
+class IEcoList1 (IEcoUnknown):
+    def Count(self) -> Int32:
+        ...    def Item(self, index: Int32) -> void*:
+        ...    def Add(self, value: void*) -> Int32:
+        ...    def InsertAt(self, index: Int32, value: void*) -> void:
+        ...    def Remove(self, value: void*) -> void:
+        ...    def RemoveAt(self, index: Int32) -> void:
+        ...    def Clear(self) -> void:
+        ...

@@ -290,8 +290,8 @@ static int16_t ECOCALLMETHOD CEcoBLD1_F82A88F6_Save(IEcoLexicalData1Ptr_t me, ch
     WRITE(&alphabetClassesCount, sizeof(alphabetClassesCount));
     WRITE(pCMe->m_pGlobalAlphabetMap, 256 * sizeof(uint16_t));
     WRITE(&stateClassesCount, sizeof(stateClassesCount));
-    WRITE(pCMe->m_pStateClassMap, totalStatesCount * sizeof(uint16_t));
     WRITE(&totalStatesCount, sizeof(totalStatesCount));
+    WRITE(pCMe->m_pStateClassMap, totalStatesCount * sizeof(uint16_t));
     WRITE(pCMe->m_pTransitionMatrix, matrixSize * sizeof(int32_t));
     WRITE(pCMe->m_pStateClassInfoArray, stateClassesCount * sizeof(EcoLexicalStateClassInfo));
 
@@ -304,6 +304,78 @@ static int16_t ECOCALLMETHOD CEcoBLD1_F82A88F6_Save(IEcoLexicalData1Ptr_t me, ch
 error:
     pIFile->pVTbl->Close(pIFile);
     pIFSM->pVTbl->Release(pIFSM);
+    return -1;
+}
+
+static int16_t ECOCALLMETHOD CEcoBLD1_F82A88F6_Load(IEcoLexicalData1Ptr_t me, char_t* fileName) {
+    CEcoBLD1_F82A88F6* pCMe = (CEcoBLD1_F82A88F6*)me;
+    IEcoInterfaceBus1* pIBus = 0;
+    IEcoFileSystemManagement1* pIFSM = 0;
+    IEcoFileManager1* pIFMgr = 0;
+    IEcoFile1* pIFile = 0;
+    IEcoMemoryAllocator1* pIMem = pCMe->m_pIMem;
+    int16_t result = 0;
+    uint32_t magic;
+    uint32_t matrixSize;
+
+    if (!me || !fileName) return ERR_ECO_POINTER;
+
+    result = pCMe->m_pISys->pVTbl->QueryInterface(pCMe->m_pISys, &IID_IEcoInterfaceBus1, (void**)&pIBus);
+    if (result != 0) return result;
+    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoFileSystemManagement1, 0, &IID_IEcoFileSystemManagement1, (void**)&pIFSM);
+    pIBus->pVTbl->Release(pIBus);
+    if (result != 0) return result;
+
+    pIFMgr = pIFSM->pVTbl->get_FileManager(pIFSM);
+    pIFile = pIFMgr->pVTbl->Open(pIFMgr, fileName);
+    if (!pIFile) {
+        pIFSM->pVTbl->Release(pIFSM);
+        return -1;
+    }
+
+#define READ(ptr, size) do { \
+    uint32_t r = size; \
+    if (pIFile->pVTbl->Read(pIFile, ptr, &r) != 0 || r != size) goto error; \
+} while (0)
+
+    READ(&magic, sizeof(magic));
+    if (magic != 0x4C58444C) goto error; 
+
+    READ(&pCMe->m_version, sizeof(uint32_t));
+    READ(&pCMe->m_flags, sizeof(uint32_t));
+    READ(&pCMe->m_initialState, sizeof(uint32_t));
+    READ(&pCMe->m_alphabetClassesCount, sizeof(uint16_t));
+
+    if (pCMe->m_pGlobalAlphabetMap) pIMem->pVTbl->Free(pIMem, pCMe->m_pGlobalAlphabetMap);
+    pCMe->m_pGlobalAlphabetMap = (uint16_t*)pIMem->pVTbl->Alloc(pIMem, 256 * sizeof(uint16_t));
+    READ(pCMe->m_pGlobalAlphabetMap, 256 * sizeof(uint16_t));
+
+    READ(&pCMe->m_stateClassesCount, sizeof(uint16_t));
+
+    READ(&pCMe->m_totalStatesCount, sizeof(uint32_t));
+
+    if (pCMe->m_pStateClassMap) pIMem->pVTbl->Free(pIMem, pCMe->m_pStateClassMap);
+    pCMe->m_pStateClassMap = (uint16_t*)pIMem->pVTbl->Alloc(pIMem, pCMe->m_totalStatesCount * sizeof(uint16_t));
+    READ(pCMe->m_pStateClassMap, pCMe->m_totalStatesCount * sizeof(uint16_t));
+
+    matrixSize = pCMe->m_totalStatesCount * pCMe->m_alphabetClassesCount;
+    if (pCMe->m_pTransitionMatrix) pIMem->pVTbl->Free(pIMem, pCMe->m_pTransitionMatrix);
+    pCMe->m_pTransitionMatrix = (int32_t*)pIMem->pVTbl->Alloc(pIMem, matrixSize * sizeof(int32_t));
+    READ(pCMe->m_pTransitionMatrix, matrixSize * sizeof(int32_t));
+
+    if (pCMe->m_pStateClassInfoArray) pIMem->pVTbl->Free(pIMem, pCMe->m_pStateClassInfoArray);
+    pCMe->m_pStateClassInfoArray = (EcoLexicalStateClassInfo*)pIMem->pVTbl->Alloc(pIMem, pCMe->m_stateClassesCount * sizeof(EcoLexicalStateClassInfo));
+    READ(pCMe->m_pStateClassInfoArray, pCMe->m_stateClassesCount * sizeof(EcoLexicalStateClassInfo));
+
+#undef READ
+
+    pIFile->pVTbl->Close(pIFile);
+    pIFSM->pVTbl->Release(pIFSM);
+    return ERR_ECO_SUCCESES;
+
+error:
+    if (pIFile) pIFile->pVTbl->Close(pIFile);
+    if (pIFSM) pIFSM->pVTbl->Release(pIFSM);
     return -1;
 }
 
@@ -442,6 +514,7 @@ IEcoLexicalData1VTbl g_xDB2E163758AA4447A843545A8805D3FEVTbl_F82A88F6 = {
     CEcoBLD1_F82A88F6_get_StateClassesCount,
     CEcoBLD1_F82A88F6_get_StateClassInfo,
     CEcoBLD1_F82A88F6_Save,
+	CEcoBLD1_F82A88F6_Load,
     CEcoBLD1_F82A88F6_get_Checksum
 };
 
@@ -453,7 +526,7 @@ CEcoBLD1_F82A88F6 g_xCEcoBLD1_F82A88F6 = {
     createCEcoBLD1_F82A88F6,
     deleteCEcoBLD1_F82A88F6,
     1, /* m_cRef */
-    0, /* m_pISys */
+    0, /* m_pIMem */
     0, /* m_pISys */
     0, /* m_Name */
 	0, /* m_flags */ 

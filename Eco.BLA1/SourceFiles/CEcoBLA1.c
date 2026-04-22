@@ -25,9 +25,11 @@
 #include "IEcoFileManager1.h"
 #include "IEcoFile1.h"
 #include "CEcoBLA1.h"
+#include "CEcoBLD1.h"
 #include "CEcoBLR1RE.h" 
 #include "CEcoBLA1Scanner.h"
 #include "IdEcoFileSystemManagement1.h"
+#include "IEcoLexicalData1.h"
 
 /*
  *
@@ -245,12 +247,39 @@ cleanup_error:
 
 static int16_t ECOCALLMETHOD CEcoBLA1_F82A88F6_LoadRulesFromFile(/* in */ IEcoLexicalAnalyzer1Ptr_t me, /* in */ char_t* fileName, /* out */ IEcoLexicalData1Ptr_t* ppIRules) {
     CEcoBLA1_F82A88F6* pCMe = (CEcoBLA1_F82A88F6*)me;
+    CEcoBLD1_F82A88F6* pData = 0;
+    int16_t result = -1;
 
-    if (me == 0) {
+    if (me == 0 || fileName == 0 || ppIRules == 0) {
         return ERR_ECO_POINTER;
     }
 
-    return ERR_ECO_SUCCESES;
+    pData = (CEcoBLD1_F82A88F6*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, sizeof(CEcoBLD1_F82A88F6));
+    if (pData == 0) {
+        return ERR_ECO_OUTOFMEMORY;
+    }
+
+    memcpy(pData, &g_xCEcoBLD1_F82A88F6, sizeof(CEcoBLD1_F82A88F6));
+
+    pData->m_pIMem = pCMe->m_pIMem;
+    pData->m_pIMem->pVTbl->AddRef(pData->m_pIMem);
+    
+    result = pData->Init(pData, (IEcoUnknown*)pCMe->m_pISys);
+
+    if (result == 0) {
+        result = pData->m_pVTblIData->Load((IEcoLexicalData1*)pData, fileName);
+        
+        if (result == 0) {
+            *ppIRules = (IEcoLexicalData1*)pData;
+        } else {
+            ((IEcoLexicalData1*)pData)->pVTbl->Release((IEcoLexicalData1*)pData);
+            *ppIRules = 0;
+        }
+    } else {
+        pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, pData);
+    }
+
+    return result;
 }
 
 static int16_t ECOCALLMETHOD CEcoBLA1_F82A88F6_SaveRulesToFile(/* in */ IEcoLexicalAnalyzer1Ptr_t me, /* in */ IEcoUnknownPtr_t pIRules, /* in */ char_t* fileName) {

@@ -94,6 +94,7 @@ typedef struct IEcoLexicalData1VTbl {
     
     /* Сохраняет все таблицы и метаданные в поток/файл */
     int16_t (ECOCALLMETHOD *Save)(IEcoLexicalData1Ptr_t me, char_t* fileName);
+	int16_t (ECOCALLMETHOD *Load)(IEcoLexicalData1Ptr_t me, char_t* fileName);
     /* Вычисляет CRC для проверки целостности данных */
     uint32_t (ECOCALLMETHOD *get_Checksum)(IEcoLexicalData1Ptr_t me);
 

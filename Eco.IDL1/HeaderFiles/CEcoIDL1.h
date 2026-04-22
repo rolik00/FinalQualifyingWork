@@ -63,6 +63,7 @@ typedef struct CEcoIDL1_40BB8A88 {
     /* Instance data */
     IEcoLexicalAnalyzer1* m_pILA;
     IEcoLexicalRules1REPtr_t m_pILexicalRules;
+	IEcoLexicalData1* m_pIData;
     IEcoSyntaxAnalyzer1* m_pISA;
     IEcoBNF1* m_pISyntaxRules;
     IEcoAST1* m_pIAST;

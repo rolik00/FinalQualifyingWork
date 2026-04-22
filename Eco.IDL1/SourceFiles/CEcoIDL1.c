@@ -21,6 +21,7 @@
 #include "IEcoSystem1.h"
 #include "IEcoInterfaceBus1.h"
 #include "IEcoInterfaceBus1MemExt.h"
+#include "IdEcoFileSystemManagement1.h"
 #include "CEcoIDL1.h"
 #include "IdEcoList1.h"
 #include "IdEcoLR1.h"
@@ -1225,6 +1226,46 @@ static uint32_t ECOCALLMETHOD CEcoIDL1_40BB8A88_Release(/* in */ IEcoIDL1Ptr_t m
     return pCMe->m_cRef;
 }
 
+static int16_t LoadLexicalRules(/* in */ IEcoIDL1Ptr_t me) {
+    CEcoIDL1_40BB8A88* pCMe = (CEcoIDL1_40BB8A88*)me;
+	int16_t result = 0;
+    IEcoFileSystemManagement1* pIFSM = 0;
+    IEcoFileManager1* pIFM = 0;
+	IEcoFile1* pFile = 0;
+    const char_t* binFileName = "idl_core.bin";
+
+	if (me == 0) {
+		return ERR_ECO_POINTER;
+	}
+
+    result = pCMe->m_pIBus->pVTbl->QueryComponent(pCMe->m_pIBus, &CID_EcoFileSystemManagement1, 0, &IID_IEcoFileSystemManagement1, (void**)&pIFSM);
+	
+	if (result == 0 && pIFSM != 0) {
+        pIFM = pIFSM->pVTbl->get_FileManager(pIFSM);
+        if (pIFM) {
+            pFile = pIFM->pVTbl->Open(pIFM, (char_t*)binFileName);
+			if (pFile != 0) {
+				pFile->pVTbl->Close(pFile);
+                
+				result = pCMe->m_pILA->pVTbl->LoadRulesFromFile(pCMe->m_pILA, (char_t*)binFileName, &pCMe->m_pIData);
+			}
+        }
+        pIFSM->pVTbl->Release(pIFSM);
+    }
+
+    if (pCMe->m_pIData == 0) {
+		result = CEcoIDL1_40BB8A88_SetDefaultLexer(pCMe);
+        if (result == 0 && pCMe->m_pILexicalRules != 0) {
+            result = pCMe->m_pILexicalRules->pVTbl->Compile(pCMe->m_pILexicalRules, &pCMe->m_pIData);
+            
+            if (result == 0 && pCMe->m_pIData != 0) {
+                pCMe->m_pILA->pVTbl->SaveRulesToFile(pCMe->m_pILA, (IEcoUnknown*)pCMe->m_pIData, (char_t*)binFileName);
+            }
+        }
+    }
+
+	return ERR_ECO_SUCCESES;
+}
 
 /*
  *
@@ -1247,7 +1288,7 @@ static int16_t ECOCALLMETHOD CEcoIDL1_40BB8A88_Initialize(/* in */ IEcoIDL1Ptr_t
     }
 
     if (pCMe->m_pILexicalRules == 0) {
-         CEcoIDL1_40BB8A88_SetDefaultLexer(pCMe);
+         LoadLexicalRules(me);
     }
 
    // pIRuleList = pCMe->m_pISyntaxRules->pVTbl->get_RuleList(pCMe->m_pISyntaxRules);
@@ -1342,7 +1383,6 @@ static int16_t ECOCALLMETHOD CEcoIDL1_40BB8A88_ParseFile(/* in */ IEcoIDL1Ptr_t 
     IEcoSyntaxAnalyzer1Parser* pIParser = 0;
     IEcoLexicalAnalyzer1Token* pIToken = 0;
     IEcoParser1Action* pIAction = 0;
-    IEcoLexicalData1* pIData = 0;
     IEcoLexicalAnalyzer1Scanner* pScanner = 0;
     char_t* pszSourceFileExt = 0;
     IEcoAST1* pIAST;
@@ -1352,13 +1392,6 @@ static int16_t ECOCALLMETHOD CEcoIDL1_40BB8A88_ParseFile(/* in */ IEcoIDL1Ptr_t 
     if (me == 0) {
         return ERR_ECO_POINTER;
     }
-
-    /* КОМПИЛЯЦИЯ: Превращаем RE в оптимизированные таблицы (DFA) */
-    /* Здесь создается IEcoLexicalData1 с AlphabetMap и TransitionMatrix */
-    result = pCMe->m_pILexicalRules->pVTbl->Compile(pCMe->m_pILexicalRules, &pIData);
-	if (result != 0) {
-		return -1;
-	}
 
     /* Извлекаем расширение файла из имени */
     pszSourceFileExt = pCMe->m_pIStr->pVTbl->SearchLastCharacter(pCMe->m_pIStr, filePath, '.');
@@ -1370,17 +1403,11 @@ static int16_t ECOCALLMETHOD CEcoIDL1_40BB8A88_ParseFile(/* in */ IEcoIDL1Ptr_t 
 
     /* Парсер */
     pIParser = pCMe->m_pISA->pVTbl->get_Parser(pCMe->m_pISA, pCMe->m_pISyntaxRules, 0);
-    if (pIParser == 0) {
-        printf("ERROR: failed create parser\n");
-    }
 
-    if (result == 0 && pIData != 0) {
-        result = pCMe->m_pILA->pVTbl->new_FileScanner(pCMe->m_pILA, (IEcoUnknownPtr_t)pIData, filePath, &pScanner);
+    if (result == 0 && pCMe->m_pIData != 0) {
+        result = pCMe->m_pILA->pVTbl->new_FileScanner(pCMe->m_pILA, (IEcoUnknownPtr_t)pCMe->m_pIData, filePath, &pScanner);
         if (result != 0) {
-            printf("ERROR: failed when scanning a file with code %d\n", result);
             return result;
-        } else {
-            printf("SUCCESS scanned a file\n");
         }
 
         pIToken = pScanner->pVTbl->Scan(pScanner);
@@ -1524,8 +1551,16 @@ static int16_t ECOCALLMETHOD CEcoIDL1_40BB8A88_Generate(/* in */ IEcoIDL1Ptr_t m
         if (generateAll || pCMe->m_pIStr->pVTbl->Compare(pCMe->m_pIStr, langId, pCMe->m_Emitters[i].langId) == 0) {
             foundLanguage = 1;
 			result = pCMe->m_pIBus->pVTbl->QueryComponent(pCMe->m_pIBus, &pCMe->m_Emitters[i].cid, 0, &IID_IEcoIDL1Emitter, (void**)&pIEmitter);
-            if (result == 0 && pIEmitter != 0) { 
-                pszIfaceName = pCMe->m_pIStr->pVTbl->Append(pCMe->m_pIStr, pszIfaceName, pCMe->m_Name);
+            if (result == 0 && pIEmitter != 0) {
+				// пока хардкод, думаю потом в каждом компоненте это сделать
+				char_t* ext = "";
+				if (pCMe->m_pIStr->pVTbl->Compare(pCMe->m_pIStr, pCMe->m_Emitters[i].langId, "C") == 0) ext = ".h";
+				else if (pCMe->m_pIStr->pVTbl->Compare(pCMe->m_pIStr, pCMe->m_Emitters[i].langId, "CPP") == 0) ext = ".hpp";
+				else if (pCMe->m_pIStr->pVTbl->Compare(pCMe->m_pIStr, pCMe->m_Emitters[i].langId, "Java") == 0) ext = ".java";
+				else if (pCMe->m_pIStr->pVTbl->Compare(pCMe->m_pIStr, pCMe->m_Emitters[i].langId, "Python") == 0) ext = ".py";
+                
+				pszIfaceName = pCMe->m_pIStr->pVTbl->Append(pCMe->m_pIStr, pszIfaceName, pCMe->m_Name);
+				pszIfaceName = pCMe->m_pIStr->pVTbl->Append(pCMe->m_pIStr, pszIfaceName, ext);
                 pIEmitter->pVTbl->Emit(pIEmitter, pAST, pszIfaceName);
                 pCMe->m_pIStr->pVTbl->Free(pCMe->m_pIStr, pszIfaceName);
                 pszIfaceName = 0;
@@ -1618,6 +1653,7 @@ static int16_t ECOCALLMETHOD initCEcoIDL1_40BB8A88(/*in*/ CEcoIDL1_40BB8A88Ptr_t
         //result = ERR_ECO_AST;
     }
 
+	pCMe->m_pIData = 0;
 	pCMe->m_cEmitters = 0;
 
     return result;
@@ -1680,6 +1716,9 @@ static void ECOCALLMETHOD deleteCEcoIDL1_40BB8A88(/* in */ CEcoIDL1_40BB8A88Ptr_
         if ( pCMe->m_pILA != 0 ) {
             pCMe->m_pILA->pVTbl->Release(pCMe->m_pILA);
         }
+		if (pCMe->m_pIData != 0) {
+            pCMe->m_pIData->pVTbl->Release(pCMe->m_pIData);
+        }
 		if ( pCMe->m_pIStr != 0 ) {
             pCMe->m_pIStr->pVTbl->Release(pCMe->m_pIStr);
         }
@@ -1723,6 +1762,7 @@ CEcoIDL1_40BB8A88 g_xCEcoIDL1_40BB8A88 = {
     0, /* m_pIStr */
     0, /* m_pILA */
     0, /* m_pILexicalRules */
+	0, /* m_pIData */
     0, /* m_pISA */
     0, /* m_pISynatxRules */
     0, /* m_pIAST */

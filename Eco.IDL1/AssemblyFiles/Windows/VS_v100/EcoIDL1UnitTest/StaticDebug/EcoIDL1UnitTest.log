@@ -1,4 +1,4 @@
-﻿Build started 21.04.2026 13:04:47.
+﻿Build started 22.04.2026 15:58:33.
      1>Project "D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1UnitTest.vcxproj" on node 5 (rebuild target(s)).
      1>_PrepareForClean:
          Deleting file "EcoIDL1UnitTest\StaticDebug\EcoIDL1UnitTest.lastbuildstate".
@@ -122,12 +122,6 @@
      1>0000000000000000000000004D656D31.lib(CEcoMemoryAllocator1.obj) : warning LNK4204: 'D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1UnitTest\StaticDebug\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
      1>4E7C20FEFAF341069B5C42497B462BBE.lib(CEcoVisitor1Element.obj) : warning LNK4204: 'D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1UnitTest\StaticDebug\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
      1>4E7C20FEFAF341069B5C42497B462BBE.lib(CEcoVisitor1Factory.obj) : warning LNK4204: 'D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1UnitTest\StaticDebug\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
-     1>88DD94592E7C48BAB381EAA0F82A88F6.lib(CEcoBLA1.obj) : warning LNK4204: 'D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1UnitTest\StaticDebug\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
-     1>88DD94592E7C48BAB381EAA0F82A88F6.lib(CEcoBLA1Factory.obj) : warning LNK4204: 'D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1UnitTest\StaticDebug\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
-     1>88DD94592E7C48BAB381EAA0F82A88F6.lib(CEcoBLA1Scanner.obj) : warning LNK4204: 'D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1UnitTest\StaticDebug\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
-     1>88DD94592E7C48BAB381EAA0F82A88F6.lib(CEcoBLA1Token.obj) : warning LNK4204: 'D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1UnitTest\StaticDebug\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
-     1>88DD94592E7C48BAB381EAA0F82A88F6.lib(CEcoBLD1.obj) : warning LNK4204: 'D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1UnitTest\StaticDebug\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
-     1>88DD94592E7C48BAB381EAA0F82A88F6.lib(CEcoBLR1RE.obj) : warning LNK4204: 'D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1UnitTest\StaticDebug\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
      1>755D526AEBF943E9B4AA4F860E0B7D40.lib(CEcoBRE1.obj) : warning LNK4204: 'D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1UnitTest\StaticDebug\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
      1>755D526AEBF943E9B4AA4F860E0B7D40.lib(CEcoBRE1Builder.obj) : warning LNK4204: 'D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1UnitTest\StaticDebug\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
      1>755D526AEBF943E9B4AA4F860E0B7D40.lib(CEcoBRE1Factory.obj) : warning LNK4204: 'D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1UnitTest\StaticDebug\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
@@ -158,4 +152,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:05.30
+Time Elapsed 00:00:04.19

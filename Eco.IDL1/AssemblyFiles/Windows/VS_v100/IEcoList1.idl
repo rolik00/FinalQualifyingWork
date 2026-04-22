@@ -1,4 +1,4 @@
-﻿import "IEcoBase1.idl"; 
+import "IEcoBase1.idl"; 
 
 [
     uuid(5AADBCB4-846C-4576-827B-287B5E67A152)
