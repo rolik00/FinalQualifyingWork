@@ -1552,15 +1552,13 @@ static int16_t ECOCALLMETHOD CEcoIDL1_40BB8A88_Generate(/* in */ IEcoIDL1Ptr_t m
             foundLanguage = 1;
 			result = pCMe->m_pIBus->pVTbl->QueryComponent(pCMe->m_pIBus, &pCMe->m_Emitters[i].cid, 0, &IID_IEcoIDL1Emitter, (void**)&pIEmitter);
             if (result == 0 && pIEmitter != 0) {
-				// пока хардкод, думаю потом в каждом компоненте это сделать
-				char_t* ext = "";
-				if (pCMe->m_pIStr->pVTbl->Compare(pCMe->m_pIStr, pCMe->m_Emitters[i].langId, "C") == 0) ext = ".h";
-				else if (pCMe->m_pIStr->pVTbl->Compare(pCMe->m_pIStr, pCMe->m_Emitters[i].langId, "CPP") == 0) ext = ".hpp";
-				else if (pCMe->m_pIStr->pVTbl->Compare(pCMe->m_pIStr, pCMe->m_Emitters[i].langId, "Java") == 0) ext = ".java";
-				else if (pCMe->m_pIStr->pVTbl->Compare(pCMe->m_pIStr, pCMe->m_Emitters[i].langId, "Python") == 0) ext = ".py";
-                
+				char_t* pszOutDir = (char_t*)commonArgs;
+				if (pszOutDir != 0) {
+                    pszIfaceName = pCMe->m_pIStr->pVTbl->Append(pCMe->m_pIStr, pszIfaceName, pszOutDir);
+                    pszIfaceName = pCMe->m_pIStr->pVTbl->Append(pCMe->m_pIStr, pszIfaceName, "\\");
+                }
+
 				pszIfaceName = pCMe->m_pIStr->pVTbl->Append(pCMe->m_pIStr, pszIfaceName, pCMe->m_Name);
-				pszIfaceName = pCMe->m_pIStr->pVTbl->Append(pCMe->m_pIStr, pszIfaceName, ext);
                 pIEmitter->pVTbl->Emit(pIEmitter, pAST, pszIfaceName);
                 pCMe->m_pIStr->pVTbl->Free(pCMe->m_pIStr, pszIfaceName);
                 pszIfaceName = 0;

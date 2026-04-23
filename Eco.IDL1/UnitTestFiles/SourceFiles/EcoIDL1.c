@@ -530,7 +530,7 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     }
 
     /* 4. Запуск генерации */
-    result = pIIDL->pVTbl->Generate(pIIDL, pIAST, pILayout, pszLangId, 0);
+    result = pIIDL->pVTbl->Generate(pIIDL, pIAST, pILayout, pszLangId, (void*)pszOutputPath);
     if (result == -2) {
         pIStdIO->pVTbl->printf(pIStdIO, "Error: Target language '%s' is not registered. Check config.ini!\n", pszLangId);
     } 
