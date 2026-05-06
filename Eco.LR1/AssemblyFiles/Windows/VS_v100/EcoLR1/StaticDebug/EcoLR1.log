@@ -1,0 +1,32 @@
+﻿Build started 06.05.2026 17:08:59.
+     1>Project "D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.LR1\AssemblyFiles\Windows\VS_v100\EcoLR1.vcxproj" on node 2 (rebuild target(s)).
+     1>_PrepareForClean:
+         Deleting file "EcoLR1\StaticDebug\EcoLR1.lastbuildstate".
+       InitializeBuildStatus:
+         Creating "EcoLR1\StaticDebug\EcoLR1.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I..\..\..\HeaderFiles /I..\..\..\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Core1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.InterfaceBus1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.System1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.MemoryManager1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FileSystemManagement1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Comparator1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Dictionary1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.String1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Stack1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Set2\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Map2\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Data1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BNF1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.PDA1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FSM1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Queue1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.List1\SharedFiles /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D ECO_WINDOWS /D ECO_WIN32 /D ECO_X86_32 /D UGUID_UTILITY /D ECO_LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"EcoLR1\StaticDebug\\" /Fd"EcoLR1\StaticDebug\vc100.pdb" /Gz /TC /analyze- /errorReport:prompt ..\..\..\SourceFiles\CEcoLR1.c ..\..\..\SourceFiles\CEcoLR1Action.c ..\..\..\SourceFiles\CEcoLR1ActionProcessing.c ..\..\..\SourceFiles\CEcoLR1Factory.c ..\..\..\SourceFiles\CEcoLR1Item.c
+         CEcoLR1Item.c
+         CEcoLR1Factory.c
+         CEcoLR1ActionProcessing.c
+         CEcoLR1Action.c
+         CEcoLR1.c
+     1>d:\myproject\fqw\eco.toolchain\eco.framework\eco.lr1\sourcefiles\cecolr1.c(1021): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 d:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'sprintf'
+         Generating Code...
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(1151,5): warning MSB8012: TargetPath(D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.LR1\AssemblyFiles\Windows\VS_v100\EcoLR1\StaticDebug\F4561FD215A34CC5BA1D8791A441A18E.lib) does not match the Library's OutputFile property value (D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.LR1\BuildFiles\Windows\x86\StaticDebug\F4561FD215A34CC5BA1D8791A441A18E.lib). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Lib.OutputFile).
+       Lib:
+         D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\Lib.exe /OUT:"..\..\..\BuildFiles\Windows\x86\StaticDebug\F4561FD215A34CC5BA1D8791A441A18E.lib" /NOLOGO /LTCG EcoLR1\StaticDebug\CEcoLR1.obj
+         EcoLR1\StaticDebug\CEcoLR1Action.obj
+         EcoLR1\StaticDebug\CEcoLR1ActionProcessing.obj
+         EcoLR1\StaticDebug\CEcoLR1Factory.obj
+         EcoLR1\StaticDebug\CEcoLR1Item.obj
+         EcoLR1.vcxproj -> D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.LR1\AssemblyFiles\Windows\VS_v100\EcoLR1\StaticDebug\F4561FD215A34CC5BA1D8791A441A18E.lib
+       FinalizeBuildStatus:
+         Deleting file "EcoLR1\StaticDebug\EcoLR1.unsuccessfulbuild".
+         Touching "EcoLR1\StaticDebug\EcoLR1.lastbuildstate".
+     1>Done Building Project "D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.LR1\AssemblyFiles\Windows\VS_v100\EcoLR1.vcxproj" (rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.71

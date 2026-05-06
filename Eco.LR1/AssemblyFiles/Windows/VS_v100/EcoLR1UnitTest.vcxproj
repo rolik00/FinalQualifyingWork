@@ -1,0 +1,185 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="DynamicDebug|Win32">
+      <Configuration>DynamicDebug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DynamicRelease|Win32">
+      <Configuration>DynamicRelease</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="StaticDebug|Win32">
+      <Configuration>StaticDebug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="StaticRelease|Win32">
+      <Configuration>StaticRelease</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B3EFB48D-16DD-4FBC-8450-E0C6363A40E2}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>EcoLR1</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DynamicDebug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='StaticDebug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DynamicRelease|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='StaticRelease|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DynamicDebug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='StaticDebug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DynamicRelease|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='StaticRelease|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='StaticDebug|Win32'">
+    <OutDir>$(SolutionDir)$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectName)\$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='StaticRelease|Win32'">
+    <OutDir>$(SolutionDir)$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectName)\$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DynamicDebug|Win32'">
+    <OutDir>$(SolutionDir)$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectName)\$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DynamicRelease|Win32'">
+    <OutDir>$(SolutionDir)$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectName)\$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DynamicDebug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\..\UnitTestFiles\HeaderFiles..\..\..\HeaderFiles;..\..\..\SharedFiles;$(ECO_FRAMEWORK)\Eco.Core1\SharedFiles;$(ECO_FRAMEWORK)\Eco.InterfaceBus1\SharedFiles;$(ECO_FRAMEWORK)\Eco.System1\SharedFiles;$(ECO_FRAMEWORK)\Eco.MemoryManager1\SharedFiles;$(ECO_FRAMEWORK)\Eco.FileSystemManagement1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Comparator1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Dictionary1\SharedFiles;$(ECO_FRAMEWORK)\Eco.String1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Stack1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Set1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Map1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Data1\SharedFiles;$(ECO_FRAMEWORK)\Eco.BNF1\SharedFiles;$(ECO_FRAMEWORK)\Eco.PDA1\SharedFiles;$(ECO_FRAMEWORK)\Eco.FSM1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Queue1\SharedFiles;$(ECO_FRAMEWORK)\Eco.DateTime1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Log1\SharedFiles;$(ECO_FRAMEWORK)\Eco.List1\SharedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <CallingConvention>StdCall</CallingConvention>
+      <CompileAs>CompileAsC</CompileAs>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;ECO_WINDOWS;ECO_WIN32;ECO_X86_32;UGUID_UTILITY;ECO_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>$(ECO_FRAMEWORK)\Eco.System1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\DynamicRelease\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>00000000000000000000000053595332.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='StaticDebug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\..\UnitTestFiles\HeaderFiles..\..\..\HeaderFiles;..\..\..\SharedFiles;$(ECO_FRAMEWORK)\Eco.Core1\SharedFiles;$(ECO_FRAMEWORK)\Eco.InterfaceBus1\SharedFiles;$(ECO_FRAMEWORK)\Eco.System1\SharedFiles;$(ECO_FRAMEWORK)\Eco.MemoryManager1\SharedFiles;$(ECO_FRAMEWORK)\Eco.FileSystemManagement1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Comparator1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Dictionary1\SharedFiles;$(ECO_FRAMEWORK)\Eco.String1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Stack1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Set2\SharedFiles;$(ECO_FRAMEWORK)\Eco.Map2\SharedFiles;$(ECO_FRAMEWORK)\Eco.Data1\SharedFiles;$(ECO_FRAMEWORK)\Eco.BNF1\SharedFiles;$(ECO_FRAMEWORK)\Eco.PDA1\SharedFiles;$(ECO_FRAMEWORK)\Eco.FSM1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Queue1\SharedFiles;$(ECO_FRAMEWORK)\Eco.DateTime1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Log1\SharedFiles;$(ECO_FRAMEWORK)\Eco.List1\SharedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <CallingConvention>StdCall</CallingConvention>
+      <CompileAs>CompileAsC</CompileAs>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;ECO_WINDOWS;ECO_WIN32;ECO_X86_32;UGUID_UTILITY;ECO_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>..\..\..\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\$(Configuration)\;$(ECO_FRAMEWORK)\Eco.InterfaceBus1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.System1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.MemoryManager1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.FileSystemManagement1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Log1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.List1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Stack1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.String1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Queue1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Map2\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Set2\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Comparator1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Data1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.DateTime1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Dictionary1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.PDA1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.FSM1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.BNF1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>F4561FD215A34CC5BA1D8791A441A18E.lib;00000000000000000000000042757331.lib;0000000000000000000000004D656D31.lib;00000000000000000000000046534D31.lib;00000000000000000000000053595332.lib;53884AFC93C448ECAA929C8D3A562281.lib;2912A7C7E0B84B4D9BFE9500EF4667D3.lib;5E7C610CB846447DB59A3C5A2C4F446F.lib;A03120BB3AF5425EBDE0A5535B423579.lib;84CC0A7DBABD44EEBE749C9A8312D37E.lib;97322B6765B74342BBCE38798A0B40B5.lib;5B2BA17BEA704527BC708F88568FE115.lib;18129B1DCF9248D9A7787F9206E2D6DC.lib;5A0F0DD57E6448EC9EE0E5D67572B47E.lib;323DD55E33D040FA98068E2FCB1CBD49.lib;44CE56A815DF433EB567D8943DA32D8E.lib;25D72F83A2564F4E9F59E489BE85E2A4.lib;715AF131CD174E90AAF3B753221B9B73.lib;58CDC2713209420CAC919BE1E16F4CA4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DynamicRelease|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <CompileAs>CompileAsC</CompileAs>
+      <CallingConvention>StdCall</CallingConvention>
+      <AdditionalIncludeDirectories>..\..\..\UnitTestFiles\HeaderFiles..\..\..\HeaderFiles;..\..\..\SharedFiles;$(ECO_FRAMEWORK)\Eco.Core1\SharedFiles;$(ECO_FRAMEWORK)\Eco.InterfaceBus1\SharedFiles;$(ECO_FRAMEWORK)\Eco.System1\SharedFiles;$(ECO_FRAMEWORK)\Eco.MemoryManager1\SharedFiles;$(ECO_FRAMEWORK)\Eco.FileSystemManagement1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Comparator1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Dictionary1\SharedFiles;$(ECO_FRAMEWORK)\Eco.String1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Stack1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Set1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Map1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Data1\SharedFiles;$(ECO_FRAMEWORK)\Eco.BNF1\SharedFiles;$(ECO_FRAMEWORK)\Eco.PDA1\SharedFiles;$(ECO_FRAMEWORK)\Eco.FSM1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Queue1\SharedFiles;$(ECO_FRAMEWORK)\Eco.DateTime1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Log1\SharedFiles;$(ECO_FRAMEWORK)\Eco.List1\SharedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;ECO_WINDOWS;ECO_WIN32;ECO_X86_32;UGUID_UTILITY;ECO_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>$(ECO_FRAMEWORK)\Eco.System1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\DynamicRelease\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>00000000000000000000000053595332.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='StaticRelease|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <CompileAs>CompileAsC</CompileAs>
+      <CallingConvention>StdCall</CallingConvention>
+      <AdditionalIncludeDirectories>..\..\..\UnitTestFiles\HeaderFiles..\..\..\HeaderFiles;..\..\..\SharedFiles;$(ECO_FRAMEWORK)\Eco.Core1\SharedFiles;$(ECO_FRAMEWORK)\Eco.InterfaceBus1\SharedFiles;$(ECO_FRAMEWORK)\Eco.System1\SharedFiles;$(ECO_FRAMEWORK)\Eco.MemoryManager1\SharedFiles;$(ECO_FRAMEWORK)\Eco.FileSystemManagement1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Comparator1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Dictionary1\SharedFiles;$(ECO_FRAMEWORK)\Eco.String1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Stack1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Set1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Map1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Data1\SharedFiles;$(ECO_FRAMEWORK)\Eco.BNF1\SharedFiles;$(ECO_FRAMEWORK)\Eco.PDA1\SharedFiles;$(ECO_FRAMEWORK)\Eco.FSM1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Queue1\SharedFiles;$(ECO_FRAMEWORK)\Eco.DateTime1\SharedFiles;$(ECO_FRAMEWORK)\Eco.Log1\SharedFiles;$(ECO_FRAMEWORK)\Eco.List1\SharedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;ECO_WINDOWS;ECO_WIN32;ECO_X86_32;UGUID_UTILITY;ECO_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>..\..\..\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\$(Configuration)\;$(ECO_FRAMEWORK)\Eco.InterfaceBus1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.System1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.MemoryManager1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.FileSystemManagement1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Log1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.List1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Stack1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.String1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Queue1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Map2\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Set2\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Comparator1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Data1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.DateTime1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.Dictionary1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.PDA1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.FSM1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;$(ECO_FRAMEWORK)\Eco.BNF1\BuildFiles\$(TargetPlatformIdentifier)\$(ProcessorArchitecture)\StaticRelease\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>F4561FD215A34CC5BA1D8791A441A18E.lib;00000000000000000000000042757331.lib;0000000000000000000000004D656D31.lib;00000000000000000000000046534D31.lib;00000000000000000000000053595332.lib;53884AFC93C448ECAA929C8D3A562281.lib;2912A7C7E0B84B4D9BFE9500EF4667D3.lib;5E7C610CB846447DB59A3C5A2C4F446F.lib;A03120BB3AF5425EBDE0A5535B423579.lib;84CC0A7DBABD44EEBE749C9A8312D37E.lib;97322B6765B74342BBCE38798A0B40B5.lib;5B2BA17BEA704527BC708F88568FE115.lib;18129B1DCF9248D9A7787F9206E2D6DC.lib;5A0F0DD57E6448EC9EE0E5D67572B47E.lib;323DD55E33D040FA98068E2FCB1CBD49.lib;0D7907DBE1C14B9E9B9FD9E8D9E251DF.lib;7750135D34D7461897B912F7CC615F72.lib;C7ED3BA4B6EB4385BBDB3C6AC5C7A394.lib;25D72F83A2564F4E9F59E489BE85E2A4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\UnitTestFiles\SourceFiles\EcoLR1.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
