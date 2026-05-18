@@ -1,0 +1,6 @@
+interface IEcoBRE1 : IEcoUnknown {
+
+    int16_t MyFunction([in] char_t* Name, [out] char_t** CopyName);
+
+    void SecondFunction([in] voidptr_t Name, [out] voidptr_t CopyName);
+};

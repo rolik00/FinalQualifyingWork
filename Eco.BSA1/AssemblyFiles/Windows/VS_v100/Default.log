@@ -1,0 +1,516 @@
+2026-05-13 17:05:52,316441 INFO : 
+=== Start tests === 
+2026-05-13 17:05:52,316441 INFO : 
+=== Start test from file === 
+2026-05-13 17:05:52,316441 INFO : *** GRAMMAR *** 
+2026-05-13 17:05:52,316441 INFO : Alphabet : 
+2026-05-13 17:05:52,316441 INFO : 0 intf, 
+2026-05-13 17:05:52,316441 INFO : 1 interface, 
+2026-05-13 17:05:52,316441 INFO : 2 id, 
+2026-05-13 17:05:52,316441 INFO : 3 :, 
+2026-05-13 17:05:52,316441 INFO : 4 {, 
+2026-05-13 17:05:52,316441 INFO : 5 methods, 
+2026-05-13 17:05:52,316441 INFO : 6 }, 
+2026-05-13 17:05:52,316441 INFO : 7 method, 
+2026-05-13 17:05:52,332073 INFO : 8 epsilon, 
+2026-05-13 17:05:52,332073 INFO : 9 base_type, 
+2026-05-13 17:05:52,332073 INFO : 10 (, 
+2026-05-13 17:05:52,332073 INFO : 11 params, 
+2026-05-13 17:05:52,332073 INFO : 12 ), 
+2026-05-13 17:05:52,332073 INFO : 13 ;, 
+2026-05-13 17:05:52,332073 INFO : 14 ,, 
+2026-05-13 17:05:52,332073 INFO : 15 param, 
+2026-05-13 17:05:52,332073 INFO : 16 [, 
+2026-05-13 17:05:52,332073 INFO : 17 attr, 
+2026-05-13 17:05:52,332073 INFO : 18 ], 
+2026-05-13 17:05:52,332073 INFO : 19 *, 
+2026-05-13 17:05:52,332073 INFO : 20 in, 
+2026-05-13 17:05:52,332073 INFO : 21 out, 
+2026-05-13 17:05:52,332073 INFO : 22 int16_t, 
+2026-05-13 17:05:52,332073 INFO : 23 char_t, 
+2026-05-13 17:05:52,332073 INFO : 24 voidptr_t, 
+2026-05-13 17:05:52,332073 INFO : 25 void, 
+2026-05-13 17:05:52,332073 INFO : NonTerminal : 
+2026-05-13 17:05:52,347699 INFO : 0 intf, 
+2026-05-13 17:05:52,347699 INFO : 1 methods, 
+2026-05-13 17:05:52,347699 INFO : 2 method, 
+2026-05-13 17:05:52,347699 INFO : 3 base_type, 
+2026-05-13 17:05:52,347699 INFO : 4 params, 
+2026-05-13 17:05:52,347699 INFO : 5 param, 
+2026-05-13 17:05:52,347699 INFO : 6 attr, 
+2026-05-13 17:05:52,363328 INFO : Terminal : 
+2026-05-13 17:05:52,363328 INFO : 0 interface, 
+2026-05-13 17:05:52,363328 INFO : 1 id, 
+2026-05-13 17:05:52,363328 INFO : 2 :, 
+2026-05-13 17:05:52,363328 INFO : 3 {, 
+2026-05-13 17:05:52,363328 INFO : 4 }, 
+2026-05-13 17:05:52,363328 INFO : 5 epsilon, 
+2026-05-13 17:05:52,363328 INFO : 6 (, 
+2026-05-13 17:05:52,363328 INFO : 7 ), 
+2026-05-13 17:05:52,363328 INFO : 8 ;, 
+2026-05-13 17:05:52,363328 INFO : 9 ,, 
+2026-05-13 17:05:52,363328 INFO : 10 [, 
+2026-05-13 17:05:52,363328 INFO : 11 ], 
+2026-05-13 17:05:52,363328 INFO : 12 *, 
+2026-05-13 17:05:52,378958 INFO : 13 in, 
+2026-05-13 17:05:52,378958 INFO : 14 out, 
+2026-05-13 17:05:52,378958 INFO : 15 int16_t, 
+2026-05-13 17:05:52,378958 INFO : 16 char_t, 
+2026-05-13 17:05:52,378958 INFO : 17 voidptr_t, 
+2026-05-13 17:05:52,378958 INFO : 18 void, 
+2026-05-13 17:05:52,378958 INFO : Rule [0]
+intf:
+	interface id : id { methods } 
+	interface id { methods }  
+2026-05-13 17:05:52,378958 INFO : Rule [5]
+intf:
+	interface id : id { methods } 
+	interface id { methods } methods:
+	methods method 
+	method 
+	epsilon  
+2026-05-13 17:05:52,378958 INFO : Rule [7]
+intf:
+	interface id : id { methods } 
+	interface id { methods } methods:
+	methods method 
+	method 
+	epsilon method:
+	base_type id ( params ) ;  
+2026-05-13 17:05:52,378958 INFO : Rule [11]
+intf:
+	interface id : id { methods } 
+	interface id { methods } methods:
+	methods method 
+	method 
+	epsilon method:
+	base_type id ( params ) ; params:
+	params , param 
+	param 
+	epsilon  
+2026-05-13 17:05:52,394608 INFO : Rule [15]
+intf:
+	interface id : id { methods } 
+	interface id { methods } methods:
+	methods method 
+	method 
+	epsilon method:
+	base_type id ( params ) ; params:
+	params , param 
+	param 
+	epsilon param:
+	[ attr ] base_type * id 
+	base_type id  
+2026-05-13 17:05:52,394608 INFO : Rule [17]
+intf:
+	interface id : id { methods } 
+	interface id { methods } methods:
+	methods method 
+	method 
+	epsilon method:
+	base_type id ( params ) ; params:
+	params , param 
+	param 
+	epsilon param:
+	[ attr ] base_type * id 
+	base_type id attr:
+	in 
+	out  
+2026-05-13 17:05:52,394608 INFO : Rule [9]
+intf:
+	interface id : id { methods } 
+	interface id { methods } methods:
+	methods method 
+	method 
+	epsilon method:
+	base_type id ( params ) ; params:
+	params , param 
+	param 
+	epsilon param:
+	[ attr ] base_type * id 
+	base_type id attr:
+	in 
+	out base_type:
+	int16_t 
+	char_t 
+	voidptr_t 
+	void  
+2026-05-13 17:05:52,394608 INFO : 
+=== Create lexical analyzer  === 
+2026-05-13 17:05:52,394608 INFO : Terminal: ID = 1, Name = interface 
+2026-05-13 17:05:52,394608 INFO : Terminal: ID = 2, Name = id 
+2026-05-13 17:05:52,394608 INFO : Terminal: ID = 3, Name = : 
+2026-05-13 17:05:52,394608 INFO : Terminal: ID = 4, Name = { 
+2026-05-13 17:05:52,394608 INFO : Terminal: ID = 6, Name = } 
+2026-05-13 17:05:52,394608 INFO : Terminal: ID = 10, Name = ( 
+2026-05-13 17:05:52,410238 INFO : Terminal: ID = 12, Name = ) 
+2026-05-13 17:05:52,410238 INFO : Terminal: ID = 13, Name = ; 
+2026-05-13 17:05:52,410238 INFO : Terminal: ID = 14, Name = , 
+2026-05-13 17:05:52,410238 INFO : Terminal: ID = 16, Name = [ 
+2026-05-13 17:05:52,410238 INFO : Terminal: ID = 18, Name = ] 
+2026-05-13 17:05:52,410238 INFO : Terminal: ID = 19, Name = * 
+2026-05-13 17:05:52,410238 INFO : Terminal: ID = 20, Name = in 
+2026-05-13 17:05:52,410238 INFO : Terminal: ID = 21, Name = out 
+2026-05-13 17:05:52,410238 INFO : Terminal: ID = 22, Name = int16_t 
+2026-05-13 17:05:52,425847 INFO : Terminal: ID = 23, Name = char_t 
+2026-05-13 17:05:52,425847 INFO : Terminal: ID = 24, Name = voidptr_t 
+2026-05-13 17:05:52,425847 INFO : Terminal: ID = 25, Name = void 
+2026-05-13 17:05:52,425847 INFO : Rules added 
+2026-05-13 17:05:52,550882 INFO : Compile successed 
+2026-05-13 17:05:52,550882 INFO : SUCCESS scanned a file 
+2026-05-13 17:05:52,637004 INFO : *** PARSER LR(k) *** 
+2026-05-13 17:05:52,637004 INFO : FIRST Sets: 
+2026-05-13 17:05:52,638009 INFO :   FIRST(intf) = { interface } 
+2026-05-13 17:05:52,639071 INFO :   FIRST(methods) = { char_t, epsilon, int16_t, void, voidptr_t } 
+2026-05-13 17:05:52,639071 INFO :   FIRST(method) = { char_t, int16_t, void, voidptr_t } 
+2026-05-13 17:05:52,640113 INFO :   FIRST(base_type) = { char_t, int16_t, void, voidptr_t } 
+2026-05-13 17:05:52,640113 INFO :   FIRST(params) = { [, char_t, epsilon, int16_t, void, voidptr_t } 
+2026-05-13 17:05:52,640113 INFO :   FIRST(param) = { [, char_t, int16_t, void, voidptr_t } 
+2026-05-13 17:05:52,640113 INFO :   FIRST(attr) = { in, out } 
+2026-05-13 17:05:52,640113 INFO : FOLLOW Sets: 
+2026-05-13 17:05:52,640113 INFO :   FOLLOW(intf) = { $END } 
+2026-05-13 17:05:52,640113 INFO :   FOLLOW(methods) = { char_t, int16_t, void, voidptr_t, } } 
+2026-05-13 17:05:52,640113 INFO :   FOLLOW(method) = { char_t, int16_t, void, voidptr_t, } } 
+2026-05-13 17:05:52,645122 INFO :   FOLLOW(base_type) = { *, id } 
+2026-05-13 17:05:52,645122 INFO :   FOLLOW(params) = { ), , } 
+2026-05-13 17:05:52,645122 INFO :   FOLLOW(param) = { ), , } 
+2026-05-13 17:05:52,645122 INFO :   FOLLOW(attr) = { ] } 
+2026-05-13 17:05:52,645122 INFO : Item Sets (States): 
+2026-05-13 17:05:52,645122 INFO :   State 0: 
+2026-05-13 17:05:52,645122 INFO :     intf -> . interface id : id { methods }  
+2026-05-13 17:05:52,645122 INFO :   State 1: 
+2026-05-13 17:05:52,645122 INFO :     intf -> interface . id : id { methods }  
+2026-05-13 17:05:52,645122 INFO :   State 2: 
+2026-05-13 17:05:52,645122 INFO :     intf -> interface id . : id { methods }  
+2026-05-13 17:05:52,645122 INFO :   State 3: 
+2026-05-13 17:05:52,645122 INFO :     intf -> interface id : . id { methods }  
+2026-05-13 17:05:52,645122 INFO :   State 4: 
+2026-05-13 17:05:52,645122 INFO :     intf -> interface id : id . { methods }  
+2026-05-13 17:05:52,645122 INFO :   State 5: 
+2026-05-13 17:05:52,645122 INFO :     intf -> interface id : id { . methods }  
+2026-05-13 17:05:52,645122 INFO :     methods -> . methods method  
+2026-05-13 17:05:52,645122 INFO :     method -> . base_type id ( params ) ;  
+2026-05-13 17:05:52,645122 INFO :     methods -> . method  
+2026-05-13 17:05:52,660770 INFO :     base_type -> . void  
+2026-05-13 17:05:52,660770 INFO :     methods -> . epsilon  
+2026-05-13 17:05:52,660770 INFO :     base_type -> . int16_t  
+2026-05-13 17:05:52,660770 INFO :     base_type -> . voidptr_t  
+2026-05-13 17:05:52,660770 INFO :     base_type -> . char_t  
+2026-05-13 17:05:52,660770 INFO :   State 6: 
+2026-05-13 17:05:52,660770 INFO :     base_type -> . void  
+2026-05-13 17:05:52,660770 INFO :     base_type -> . voidptr_t  
+2026-05-13 17:05:52,660770 INFO :     intf -> interface id : id { methods . }  
+2026-05-13 17:05:52,660770 INFO :     method -> . base_type id ( params ) ;  
+2026-05-13 17:05:52,660770 INFO :     methods -> methods . method  
+2026-05-13 17:05:52,660770 INFO :     base_type -> . int16_t  
+2026-05-13 17:05:52,660770 INFO :     base_type -> . char_t  
+2026-05-13 17:05:52,660770 INFO :   State 7: 
+2026-05-13 17:05:52,660770 INFO :     methods -> method .  
+2026-05-13 17:05:52,660770 INFO :   State 8: 
+2026-05-13 17:05:52,660770 INFO :     methods -> epsilon .  
+2026-05-13 17:05:52,660770 INFO :   State 9: 
+2026-05-13 17:05:52,676387 INFO :     method -> base_type . id ( params ) ;  
+2026-05-13 17:05:52,676387 INFO :   State 10: 
+2026-05-13 17:05:52,676387 INFO :     base_type -> int16_t .  
+2026-05-13 17:05:52,676387 INFO :   State 11: 
+2026-05-13 17:05:52,676387 INFO :     base_type -> char_t .  
+2026-05-13 17:05:52,676387 INFO :   State 12: 
+2026-05-13 17:05:52,676387 INFO :     base_type -> voidptr_t .  
+2026-05-13 17:05:52,676387 INFO :   State 13: 
+2026-05-13 17:05:52,676387 INFO :     base_type -> void .  
+2026-05-13 17:05:52,676387 INFO :   State 14: 
+2026-05-13 17:05:52,676387 INFO :     intf -> interface id : id { methods } .  
+2026-05-13 17:05:52,676387 INFO :   State 15: 
+2026-05-13 17:05:52,676387 INFO :     methods -> methods method .  
+2026-05-13 17:05:52,676387 INFO :   State 16: 
+2026-05-13 17:05:52,676387 INFO :     method -> base_type id . ( params ) ;  
+2026-05-13 17:05:52,676387 INFO :   State 17: 
+2026-05-13 17:05:52,676387 INFO :     param -> . base_type id  
+2026-05-13 17:05:52,676387 INFO :     method -> base_type id ( . params ) ;  
+2026-05-13 17:05:52,692028 INFO :     base_type -> . voidptr_t  
+2026-05-13 17:05:52,692028 INFO :     params -> . params , param  
+2026-05-13 17:05:52,692028 INFO :     base_type -> . int16_t  
+2026-05-13 17:05:52,692028 INFO :     base_type -> . void  
+2026-05-13 17:05:52,692028 INFO :     param -> . [ attr ] base_type * id  
+2026-05-13 17:05:52,692028 INFO :     params -> . param  
+2026-05-13 17:05:52,692028 INFO :     params -> . epsilon  
+2026-05-13 17:05:52,692028 INFO :     base_type -> . char_t  
+2026-05-13 17:05:52,692028 INFO :   State 18: 
+2026-05-13 17:05:52,692028 INFO :     params -> epsilon .  
+2026-05-13 17:05:52,692028 INFO :   State 19: 
+2026-05-13 17:05:52,692028 INFO :     param -> base_type . id  
+2026-05-13 17:05:52,692028 INFO :   State 20: 
+2026-05-13 17:05:52,692028 INFO :     method -> base_type id ( params . ) ;  
+2026-05-13 17:05:52,692028 INFO :     params -> params . , param  
+2026-05-13 17:05:52,692028 INFO :   State 21: 
+2026-05-13 17:05:52,692028 INFO :     params -> param .  
+2026-05-13 17:05:52,692028 INFO :   State 22: 
+2026-05-13 17:05:52,692028 INFO :     param -> [ . attr ] base_type * id  
+2026-05-13 17:05:52,707646 INFO :     attr -> . out  
+2026-05-13 17:05:52,707646 INFO :     attr -> . in  
+2026-05-13 17:05:52,707646 INFO :   State 23: 
+2026-05-13 17:05:52,707646 INFO :     param -> base_type id .  
+2026-05-13 17:05:52,707646 INFO :   State 24: 
+2026-05-13 17:05:52,707646 INFO :     method -> base_type id ( params ) . ;  
+2026-05-13 17:05:52,707646 INFO :   State 25: 
+2026-05-13 17:05:52,707646 INFO :     param -> . base_type id  
+2026-05-13 17:05:52,707646 INFO :     base_type -> . voidptr_t  
+2026-05-13 17:05:52,707646 INFO :     base_type -> . int16_t  
+2026-05-13 17:05:52,707646 INFO :     param -> . [ attr ] base_type * id  
+2026-05-13 17:05:52,707646 INFO :     base_type -> . char_t  
+2026-05-13 17:05:52,707646 INFO :     base_type -> . void  
+2026-05-13 17:05:52,707646 INFO :     params -> params , . param  
+2026-05-13 17:05:52,707646 INFO :   State 26: 
+2026-05-13 17:05:52,707646 INFO :     param -> [ attr . ] base_type * id  
+2026-05-13 17:05:52,707646 INFO :   State 27: 
+2026-05-13 17:05:52,707646 INFO :     attr -> in .  
+2026-05-13 17:05:52,707646 INFO :   State 28: 
+2026-05-13 17:05:52,723279 INFO :     attr -> out .  
+2026-05-13 17:05:52,723279 INFO :   State 29: 
+2026-05-13 17:05:52,723279 INFO :     method -> base_type id ( params ) ; .  
+2026-05-13 17:05:52,723279 INFO :   State 30: 
+2026-05-13 17:05:52,723279 INFO :     params -> params , param .  
+2026-05-13 17:05:52,723279 INFO :   State 31: 
+2026-05-13 17:05:52,723279 INFO :     param -> [ attr ] . base_type * id  
+2026-05-13 17:05:52,723279 INFO :     base_type -> . int16_t  
+2026-05-13 17:05:52,723279 INFO :     base_type -> . void  
+2026-05-13 17:05:52,723279 INFO :     base_type -> . char_t  
+2026-05-13 17:05:52,723279 INFO :     base_type -> . voidptr_t  
+2026-05-13 17:05:52,723279 INFO :   State 32: 
+2026-05-13 17:05:52,723279 INFO :     param -> [ attr ] base_type . * id  
+2026-05-13 17:05:52,723279 INFO :   State 33: 
+2026-05-13 17:05:52,723279 INFO :     param -> [ attr ] base_type * . id  
+2026-05-13 17:05:52,723279 INFO :   State 34: 
+2026-05-13 17:05:52,723279 INFO :     param -> [ attr ] base_type * id .  
+2026-05-13 17:05:52,723279 INFO : ******************** 
+2026-05-13 17:05:52,723279 INFO : *** GOTO/ACTION TABLE (FSM) *** 
+2026-05-13 17:05:52,723279 INFO :   Source   |   Symbol       |   Target   |  Action  
+2026-05-13 17:05:52,738917 INFO : -----------+----------------+------------+---------- 
+2026-05-13 17:05:52,738917 INFO :   State 0   | interface      | State 1   | SHIFT 
+2026-05-13 17:05:52,738917 INFO :   State 1   | id             | State 2   | SHIFT 
+2026-05-13 17:05:52,738917 INFO :   State 2   | :              | State 3   | SHIFT 
+2026-05-13 17:05:52,738917 INFO :   State 3   | id             | State 4   | SHIFT 
+2026-05-13 17:05:52,738917 INFO :   State 4   | {              | State 5   | SHIFT 
+2026-05-13 17:05:52,738917 INFO :   State 5   | epsilon        | State 8   | SHIFT 
+2026-05-13 17:05:52,738917 INFO :   State 5   | int16_t        | State 10  | SHIFT 
+2026-05-13 17:05:52,738917 INFO :   State 5   | char_t         | State 11  | SHIFT 
+2026-05-13 17:05:52,738917 INFO :   State 5   | voidptr_t      | State 12  | SHIFT 
+2026-05-13 17:05:52,738917 INFO :   State 5   | void           | State 13  | SHIFT 
+2026-05-13 17:05:52,738917 INFO :   State 5   | methods        | State 6   | GOTO 
+2026-05-13 17:05:52,738917 INFO :   State 5   | method         | State 7   | GOTO 
+2026-05-13 17:05:52,738917 INFO :   State 5   | base_type      | State 9   | GOTO 
+2026-05-13 17:05:52,738917 INFO :   State 6   | }              | State 14  | SHIFT 
+2026-05-13 17:05:52,738917 INFO :   State 6   | int16_t        | State 10  | SHIFT 
+2026-05-13 17:05:52,738917 INFO :   State 6   | char_t         | State 11  | SHIFT 
+2026-05-13 17:05:52,738917 INFO :   State 6   | voidptr_t      | State 12  | SHIFT 
+2026-05-13 17:05:52,754547 INFO :   State 6   | void           | State 13  | SHIFT 
+2026-05-13 17:05:52,754547 INFO :   State 6   | method         | State 15  | GOTO 
+2026-05-13 17:05:52,754547 INFO :   State 6   | base_type      | State 9   | GOTO 
+2026-05-13 17:05:52,754547 INFO :   State 7   | interface      | Rule 1     | REDUCE 
+2026-05-13 17:05:52,754547 INFO :   State 7   | id             | Rule 1     | REDUCE 
+2026-05-13 17:05:52,754547 INFO :   State 7   | :              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,754547 INFO :   State 7   | {              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,754547 INFO :   State 7   | }              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,754547 INFO :   State 7   | epsilon        | Rule 1     | REDUCE 
+2026-05-13 17:05:52,754547 INFO :   State 7   | (              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,754547 INFO :   State 7   | )              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,754547 INFO :   State 7   | ;              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,754547 INFO :   State 7   | ,              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,754547 INFO :   State 7   | [              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,754547 INFO :   State 7   | ]              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,754547 INFO :   State 7   | *              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,754547 INFO :   State 7   | in             | Rule 1     | REDUCE 
+2026-05-13 17:05:52,754547 INFO :   State 7   | out            | Rule 1     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 7   | int16_t        | Rule 1     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 7   | char_t         | Rule 1     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 7   | voidptr_t      | Rule 1     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 7   | void           | Rule 1     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 8   | interface      | Rule 2     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 8   | id             | Rule 2     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 8   | :              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 8   | {              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 8   | }              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 8   | epsilon        | Rule 2     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 8   | (              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 8   | )              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 8   | ;              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 8   | ,              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 8   | [              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 8   | ]              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 8   | *              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 8   | in             | Rule 2     | REDUCE 
+2026-05-13 17:05:52,770170 INFO :   State 8   | out            | Rule 2     | REDUCE 
+2026-05-13 17:05:52,785806 INFO :   State 8   | int16_t        | Rule 2     | REDUCE 
+2026-05-13 17:05:52,785806 INFO :   State 8   | char_t         | Rule 2     | REDUCE 
+2026-05-13 17:05:52,785806 INFO :   State 8   | voidptr_t      | Rule 2     | REDUCE 
+2026-05-13 17:05:52,785806 INFO :   State 8   | void           | Rule 2     | REDUCE 
+2026-05-13 17:05:52,785806 INFO :   State 9   | id             | State 16  | SHIFT 
+2026-05-13 17:05:52,785806 INFO :   State 11  | interface      | Rule 1     | REDUCE 
+2026-05-13 17:05:52,785806 INFO :   State 11  | id             | Rule 1     | REDUCE 
+2026-05-13 17:05:52,785806 INFO :   State 11  | :              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,785806 INFO :   State 11  | {              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,785806 INFO :   State 11  | }              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,785806 INFO :   State 11  | epsilon        | Rule 1     | REDUCE 
+2026-05-13 17:05:52,785806 INFO :   State 11  | (              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,785806 INFO :   State 11  | )              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,785806 INFO :   State 11  | ;              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,785806 INFO :   State 11  | ,              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,785806 INFO :   State 11  | [              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,801436 INFO :   State 11  | ]              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,801436 INFO :   State 11  | *              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,801436 INFO :   State 11  | in             | Rule 1     | REDUCE 
+2026-05-13 17:05:52,801436 INFO :   State 11  | out            | Rule 1     | REDUCE 
+2026-05-13 17:05:52,801436 INFO :   State 11  | int16_t        | Rule 1     | REDUCE 
+2026-05-13 17:05:52,801436 INFO :   State 11  | char_t         | Rule 1     | REDUCE 
+2026-05-13 17:05:52,801436 INFO :   State 11  | voidptr_t      | Rule 1     | REDUCE 
+2026-05-13 17:05:52,801436 INFO :   State 11  | void           | Rule 1     | REDUCE 
+2026-05-13 17:05:52,801436 INFO :   State 12  | interface      | Rule 2     | REDUCE 
+2026-05-13 17:05:52,801436 INFO :   State 12  | id             | Rule 2     | REDUCE 
+2026-05-13 17:05:52,801436 INFO :   State 12  | :              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,817078 INFO :   State 12  | {              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,817078 INFO :   State 12  | }              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,817078 INFO :   State 12  | epsilon        | Rule 2     | REDUCE 
+2026-05-13 17:05:52,817078 INFO :   State 12  | (              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,817078 INFO :   State 12  | )              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,817078 INFO :   State 12  | ;              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,817078 INFO :   State 12  | ,              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,817078 INFO :   State 12  | [              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,817078 INFO :   State 12  | ]              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,817078 INFO :   State 12  | *              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,817078 INFO :   State 12  | in             | Rule 2     | REDUCE 
+2026-05-13 17:05:52,817078 INFO :   State 12  | out            | Rule 2     | REDUCE 
+2026-05-13 17:05:52,817078 INFO :   State 12  | int16_t        | Rule 2     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 12  | char_t         | Rule 2     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 12  | voidptr_t      | Rule 2     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 12  | void           | Rule 2     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | interface      | Rule 3     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | id             | Rule 3     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | :              | Rule 3     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | {              | Rule 3     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | }              | Rule 3     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | epsilon        | Rule 3     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | (              | Rule 3     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | )              | Rule 3     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | ;              | Rule 3     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | ,              | Rule 3     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | [              | Rule 3     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | ]              | Rule 3     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | *              | Rule 3     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | in             | Rule 3     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | out            | Rule 3     | REDUCE 
+2026-05-13 17:05:52,832686 INFO :   State 13  | int16_t        | Rule 3     | REDUCE 
+2026-05-13 17:05:52,848326 INFO :   State 13  | char_t         | Rule 3     | REDUCE 
+2026-05-13 17:05:52,848326 INFO :   State 13  | voidptr_t      | Rule 3     | REDUCE 
+2026-05-13 17:05:52,848326 INFO :   State 13  | void           | Rule 3     | REDUCE 
+2026-05-13 17:05:52,848326 INFO :   State 16  | (              | State 17  | SHIFT 
+2026-05-13 17:05:52,848326 INFO :   State 17  | epsilon        | State 18  | SHIFT 
+2026-05-13 17:05:52,848326 INFO :   State 17  | [              | State 22  | SHIFT 
+2026-05-13 17:05:52,848326 INFO :   State 17  | int16_t        | State 10  | SHIFT 
+2026-05-13 17:05:52,848326 INFO :   State 17  | char_t         | State 11  | SHIFT 
+2026-05-13 17:05:52,848326 INFO :   State 17  | voidptr_t      | State 12  | SHIFT 
+2026-05-13 17:05:52,848326 INFO :   State 17  | void           | State 13  | SHIFT 
+2026-05-13 17:05:52,848326 INFO :   State 17  | base_type      | State 19  | GOTO 
+2026-05-13 17:05:52,848326 INFO :   State 17  | params         | State 20  | GOTO 
+2026-05-13 17:05:52,848326 INFO :   State 17  | param          | State 21  | GOTO 
+2026-05-13 17:05:52,848326 INFO :   State 18  | interface      | Rule 2     | REDUCE 
+2026-05-13 17:05:52,848326 INFO :   State 18  | id             | Rule 2     | REDUCE 
+2026-05-13 17:05:52,848326 INFO :   State 18  | :              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,848326 INFO :   State 18  | {              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,848326 INFO :   State 18  | }              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,848326 INFO :   State 18  | epsilon        | Rule 2     | REDUCE 
+2026-05-13 17:05:52,848326 INFO :   State 18  | (              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,848326 INFO :   State 18  | )              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,863942 INFO :   State 18  | ;              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,863942 INFO :   State 18  | ,              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,863942 INFO :   State 18  | [              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,863942 INFO :   State 18  | ]              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,863942 INFO :   State 18  | *              | Rule 2     | REDUCE 
+2026-05-13 17:05:52,863942 INFO :   State 18  | in             | Rule 2     | REDUCE 
+2026-05-13 17:05:52,863942 INFO :   State 18  | out            | Rule 2     | REDUCE 
+2026-05-13 17:05:52,863942 INFO :   State 18  | int16_t        | Rule 2     | REDUCE 
+2026-05-13 17:05:52,863942 INFO :   State 18  | char_t         | Rule 2     | REDUCE 
+2026-05-13 17:05:52,863942 INFO :   State 18  | voidptr_t      | Rule 2     | REDUCE 
+2026-05-13 17:05:52,863942 INFO :   State 18  | void           | Rule 2     | REDUCE 
+2026-05-13 17:05:52,879573 INFO :   State 19  | id             | State 23  | SHIFT 
+2026-05-13 17:05:52,879573 INFO :   State 20  | )              | State 24  | SHIFT 
+2026-05-13 17:05:52,879573 INFO :   State 20  | ,              | State 25  | SHIFT 
+2026-05-13 17:05:52,879573 INFO :   State 21  | interface      | Rule 1     | REDUCE 
+2026-05-13 17:05:52,879573 INFO :   State 21  | id             | Rule 1     | REDUCE 
+2026-05-13 17:05:52,879573 INFO :   State 21  | :              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,879573 INFO :   State 21  | {              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,879573 INFO :   State 21  | }              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,879573 INFO :   State 21  | epsilon        | Rule 1     | REDUCE 
+2026-05-13 17:05:52,879573 INFO :   State 21  | (              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,879573 INFO :   State 21  | )              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,879573 INFO :   State 21  | ;              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,879573 INFO :   State 21  | ,              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,895206 INFO :   State 21  | [              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,895206 INFO :   State 21  | ]              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,895206 INFO :   State 21  | *              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,895206 INFO :   State 21  | in             | Rule 1     | REDUCE 
+2026-05-13 17:05:52,895206 INFO :   State 21  | out            | Rule 1     | REDUCE 
+2026-05-13 17:05:52,895206 INFO :   State 21  | int16_t        | Rule 1     | REDUCE 
+2026-05-13 17:05:52,895206 INFO :   State 21  | char_t         | Rule 1     | REDUCE 
+2026-05-13 17:05:52,895206 INFO :   State 21  | voidptr_t      | Rule 1     | REDUCE 
+2026-05-13 17:05:52,895206 INFO :   State 21  | void           | Rule 1     | REDUCE 
+2026-05-13 17:05:52,895206 INFO :   State 22  | in             | State 27  | SHIFT 
+2026-05-13 17:05:52,895206 INFO :   State 22  | out            | State 28  | SHIFT 
+2026-05-13 17:05:52,895206 INFO :   State 22  | attr           | State 26  | GOTO 
+2026-05-13 17:05:52,895206 INFO :   State 23  | interface      | Rule 1     | REDUCE 
+2026-05-13 17:05:52,910831 INFO :   State 23  | id             | Rule 1     | REDUCE 
+2026-05-13 17:05:52,910831 INFO :   State 23  | :              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,910831 INFO :   State 23  | {              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,910831 INFO :   State 23  | }              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,910831 INFO :   State 23  | epsilon        | Rule 1     | REDUCE 
+2026-05-13 17:05:52,910831 INFO :   State 23  | (              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,910831 INFO :   State 23  | )              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,910831 INFO :   State 23  | ;              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,910831 INFO :   State 23  | ,              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,910831 INFO :   State 23  | [              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,910831 INFO :   State 23  | ]              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,926462 INFO :   State 23  | *              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,926462 INFO :   State 23  | in             | Rule 1     | REDUCE 
+2026-05-13 17:05:52,926462 INFO :   State 23  | out            | Rule 1     | REDUCE 
+2026-05-13 17:05:52,926462 INFO :   State 23  | int16_t        | Rule 1     | REDUCE 
+2026-05-13 17:05:52,926462 INFO :   State 23  | char_t         | Rule 1     | REDUCE 
+2026-05-13 17:05:52,926462 INFO :   State 23  | voidptr_t      | Rule 1     | REDUCE 
+2026-05-13 17:05:52,926462 INFO :   State 23  | void           | Rule 1     | REDUCE 
+2026-05-13 17:05:52,926462 INFO :   State 24  | ;              | State 29  | SHIFT 
+2026-05-13 17:05:52,926462 INFO :   State 25  | [              | State 22  | SHIFT 
+2026-05-13 17:05:52,926462 INFO :   State 25  | int16_t        | State 10  | SHIFT 
+2026-05-13 17:05:52,926462 INFO :   State 25  | char_t         | State 11  | SHIFT 
+2026-05-13 17:05:52,926462 INFO :   State 25  | voidptr_t      | State 12  | SHIFT 
+2026-05-13 17:05:52,942112 INFO :   State 25  | void           | State 13  | SHIFT 
+2026-05-13 17:05:52,942112 INFO :   State 25  | base_type      | State 19  | GOTO 
+2026-05-13 17:05:52,942112 INFO :   State 25  | param          | State 30  | GOTO 
+2026-05-13 17:05:52,942112 INFO :   State 26  | ]              | State 31  | SHIFT 
+2026-05-13 17:05:52,942112 INFO :   State 28  | interface      | Rule 1     | REDUCE 
+2026-05-13 17:05:52,942112 INFO :   State 28  | id             | Rule 1     | REDUCE 
+2026-05-13 17:05:52,942112 INFO :   State 28  | :              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,942112 INFO :   State 28  | {              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,942112 INFO :   State 28  | }              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,942112 INFO :   State 28  | epsilon        | Rule 1     | REDUCE 
+2026-05-13 17:05:52,942112 INFO :   State 28  | (              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,942112 INFO :   State 28  | )              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,957724 INFO :   State 28  | ;              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,957724 INFO :   State 28  | ,              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,957724 INFO :   State 28  | [              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,957724 INFO :   State 28  | ]              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,957724 INFO :   State 28  | *              | Rule 1     | REDUCE 
+2026-05-13 17:05:52,957724 INFO :   State 28  | in             | Rule 1     | REDUCE 
+2026-05-13 17:05:52,957724 INFO :   State 28  | out            | Rule 1     | REDUCE 
+2026-05-13 17:05:52,957724 INFO :   State 28  | int16_t        | Rule 1     | REDUCE 
+2026-05-13 17:05:52,957724 INFO :   State 28  | char_t         | Rule 1     | REDUCE 
+2026-05-13 17:05:52,957724 INFO :   State 28  | voidptr_t      | Rule 1     | REDUCE 
+2026-05-13 17:05:52,957724 INFO :   State 28  | void           | Rule 1     | REDUCE 
+2026-05-13 17:05:52,957724 INFO :   State 31  | int16_t        | State 10  | SHIFT 
+2026-05-13 17:05:52,973351 INFO :   State 31  | char_t         | State 11  | SHIFT 
+2026-05-13 17:05:52,973351 INFO :   State 31  | voidptr_t      | State 12  | SHIFT 
+2026-05-13 17:05:52,973351 INFO :   State 31  | void           | State 13  | SHIFT 
+2026-05-13 17:05:52,973351 INFO :   State 31  | base_type      | State 32  | GOTO 
+2026-05-13 17:05:52,973351 INFO :   State 32  | *              | State 33  | SHIFT 
+2026-05-13 17:05:52,973351 INFO :   State 33  | id             | State 34  | SHIFT 
+2026-05-13 17:05:52,973351 INFO : -----------+----------------+------------+---------- 
+2026-05-13 17:05:52,973351 INFO : === Finish test  from file === 
+2026-05-13 17:05:52,973351 INFO : 
+=== Finish tests === 

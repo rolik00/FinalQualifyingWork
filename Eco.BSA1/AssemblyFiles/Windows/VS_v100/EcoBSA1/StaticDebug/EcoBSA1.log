@@ -1,0 +1,26 @@
+﻿Build started 18.05.2026 17:57:04.
+     1>Project "D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BSA1\AssemblyFiles\Windows\VS_v100\EcoBSA1.vcxproj" on node 2 (rebuild target(s)).
+     1>_PrepareForClean:
+         Deleting file "EcoBSA1\StaticDebug\EcoBSA1.lastbuildstate".
+       InitializeBuildStatus:
+         Creating "EcoBSA1\StaticDebug\EcoBSA1.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I..\..\..\HeaderFiles /I..\..\..\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Core1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.InterfaceBus1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.System1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.MemoryManager1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FileSystemManagement1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Stack1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Set2\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Comparator1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.LR1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Tree1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BinaryTree1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Data1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.PDA1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FLD1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FSM1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BNF1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BRE1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BLA1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.AST1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Map2\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Dictionary1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.String1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.List1\SharedFiles /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D ECO_WINDOWS /D ECO_WIN32 /D ECO_X86_32 /D UGUID_UTILITY /D ECO_LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"EcoBSA1\StaticDebug\\" /Fd"EcoBSA1\StaticDebug\vc100.pdb" /Gz /TC /analyze- /errorReport:prompt ..\..\..\SourceFiles\CEcoBSA1.c ..\..\..\SourceFiles\CEcoBSA1Factory.c ..\..\..\SourceFiles\CEcoBSA1Parser.c
+         CEcoBSA1Parser.c
+         CEcoBSA1Factory.c
+         CEcoBSA1.c
+         Generating Code...
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(1151,5): warning MSB8012: TargetPath(D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BSA1\AssemblyFiles\Windows\VS_v100\EcoBSA1\StaticDebug\FF73C4B2F8B0484897DB3298F6E9D8E1.lib) does not match the Library's OutputFile property value (D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BSA1\BuildFiles\Windows\x86\StaticDebug\FF73C4B2F8B0484897DB3298F6E9D8E1.lib). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Lib.OutputFile).
+       Lib:
+         D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\Lib.exe /OUT:"..\..\..\BuildFiles\Windows\x86\StaticDebug\FF73C4B2F8B0484897DB3298F6E9D8E1.lib" /NOLOGO /LTCG EcoBSA1\StaticDebug\CEcoBSA1.obj
+         EcoBSA1\StaticDebug\CEcoBSA1Factory.obj
+         EcoBSA1\StaticDebug\CEcoBSA1Parser.obj
+         EcoBSA1.vcxproj -> D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BSA1\AssemblyFiles\Windows\VS_v100\EcoBSA1\StaticDebug\FF73C4B2F8B0484897DB3298F6E9D8E1.lib
+       FinalizeBuildStatus:
+         Deleting file "EcoBSA1\StaticDebug\EcoBSA1.unsuccessfulbuild".
+         Touching "EcoBSA1\StaticDebug\EcoBSA1.lastbuildstate".
+     1>Done Building Project "D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.BSA1\AssemblyFiles\Windows\VS_v100\EcoBSA1.vcxproj" (rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.50
