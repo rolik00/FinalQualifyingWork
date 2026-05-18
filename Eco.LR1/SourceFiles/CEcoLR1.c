@@ -33,7 +33,6 @@ extern IEcoParser1LRkItemVTbl g_xCEcoLR1Item_A441A18E;
 extern IEcoParser1ActionProcessingVTbl g_xCEcoLR1ActionProcessing_A441A18E;
 extern CEcoLR1Action_A441A18E g_xCEcoLR1Action_A441A18E;
 
-
 /* Очистка параметров FSM от наших Action до вызова PDA->Clear() */
 static void CEcoLR1_A441A18E_ClearActions(CEcoLR1_A441A18E* pCMe) {
     IEcoFSM1StateMachine* pFSM = 0;
@@ -1226,6 +1225,142 @@ static int16_t CheckConflicts(CEcoLR1_A441A18E* pCMe) {
     return conflictFound ? -1 : 0;
 }
 
+static int32_t ECOCALLMETHOD CEcoLR1_A441A18E_get_Action(IEcoParser1LRkPtr_t me, uint32_t stateId, char_t* terminal);
+static int32_t ECOCALLMETHOD CEcoLR1_A441A18E_get_Goto(IEcoParser1LRkPtr_t me, uint32_t stateId, char_t* nonTerminal);
+
+static int32_t CEcoLR1_A441A18E_ForceGetReduce(CEcoLR1_A441A18E* pCMe, uint32_t stateId, char_t* terminal) {
+    IEcoSet2* pICurrentSet = (IEcoSet2*)pCMe->m_pIItemSets->pVTbl->Item(pCMe->m_pIItemSets, stateId);
+    IEcoContainer1* pIContainer = 0;
+    IEcoContainer1Iterator* pIIter = 0;
+    IEcoParser1LRkItem* pIItem = 0;
+    IEcoBNF1Rule* pIRule = 0;
+    IEcoList1* pIElements = 0;
+    IEcoList1* pAllRules = pCMe->m_pIExtGrammar->pVTbl->get_RuleList(pCMe->m_pIExtGrammar);
+    int32_t result = 0;
+    uint32_t r, altIdx;
+
+    if (pICurrentSet->pVTbl->QueryInterface(pICurrentSet, &IID_IEcoContainer1, (voidptr_t*)&pIContainer) == 0) {
+        pIIter = pIContainer->pVTbl->GetIterator(pIContainer, ECO_CONTAINER_1_ITER_BEGIN, 0);
+        while (pIIter && pIIter->pVTbl->Value(pIIter)) {
+			uint32_t count = 0;
+            bool_t isEpsilon = 0;
+            pIItem = (IEcoParser1LRkItem*)pIIter->pVTbl->Value(pIIter);
+            pIRule = pIItem->pVTbl->get_Rule(pIItem);
+            altIdx = pIItem->pVTbl->get_RuleSetId(pIItem);
+            pIElements = (IEcoList1*)pIRule->pVTbl->get_RuleSet(pIRule)->pVTbl->Item(pIRule->pVTbl->get_RuleSet(pIRule), altIdx);
+
+            if (pIElements == 0) {
+                isEpsilon = 1;
+            } else {
+                count = pIElements->pVTbl->Count(pIElements);
+                if (count == 0) {
+                    isEpsilon = 1;
+                } else if (count == 1) {
+                    IEcoBNF1Element* pElem = (IEcoBNF1Element*)pIElements->pVTbl->Item(pIElements, 0);
+                    if (pElem == 0 || *(void**)pElem == 0 || (pElem->pVTbl->get_Name(pElem) && strcmp(pElem->pVTbl->get_Name(pElem), "epsilon") == 0)) {
+                        isEpsilon = 1;
+                    }
+                }
+            }
+
+            /* Если точка в конце правила ИЛИ это эпсилон-правило */
+            if ((uint32_t)pIItem->pVTbl->get_MarkerPosition(pIItem) == count || isEpsilon) {
+                IEcoSet2* pFollow = (IEcoSet2*)pCMe->m_pIFollow->pVTbl->Get(pCMe->m_pIFollow, pIRule->pVTbl->get_Name(pIRule));
+                if (pFollow && pFollow->pVTbl->Contains(pFollow, terminal)) {
+                    /* Ищем индекс правила */
+                    for (r = 0; r < pAllRules->pVTbl->Count(pAllRules); r++) {
+                        if (pAllRules->pVTbl->Item(pAllRules, r) == (void*)pIRule) {
+                            result = -(int32_t)(((r + 1) << 8) | (altIdx & 0xFF));
+                            break;
+                        }
+                    }
+                }
+            }
+            if (result != 0) break;
+            pIIter->pVTbl->Next(pIIter);
+        }
+        if (pIIter) pIIter->pVTbl->Release(pIIter);
+        pIContainer->pVTbl->Release(pIContainer);
+    }
+    return result;
+}
+
+static int16_t CEcoLR1_A441A18E_CompileTables(CEcoLR1_A441A18E* pCMe) {
+    IEcoList1* pIRuleList = pCMe->m_pIExtGrammar->pVTbl->get_RuleList(pCMe->m_pIExtGrammar);
+    IEcoBNF1Rule* pIRule = 0;
+    IEcoBNF1Element* pIElement = 0;
+    IEcoList1 *pIRuleSet = 0, *pIElementList = 0;
+    uint32_t numStates = pCMe->m_pIItemSets->pVTbl->Count(pCMe->m_pIItemSets);
+    uint32_t maxTermId = 0, maxNonTermId = 0;
+    uint32_t i, r, s, e, currId;
+    IEcoParser1LRkPtr_t me = (IEcoParser1LRkPtr_t)pCMe;
+
+    /* 1. ОПРЕДЕЛЯЕМ РАЗМЕРЫ ТАБЛИЦ */
+    for (r = 0; r < pIRuleList->pVTbl->Count(pIRuleList); r++) {
+        pIRule = (IEcoBNF1Rule*)pIRuleList->pVTbl->Item(pIRuleList, r);
+        if (pIRule->pVTbl->get_Id(pIRule) > maxNonTermId) maxNonTermId = pIRule->pVTbl->get_Id(pIRule);
+        pIRuleSet = pIRule->pVTbl->get_RuleSet(pIRule);
+        for (s = 0; s < pIRuleSet->pVTbl->Count(pIRuleSet); s++) {
+            pIElementList = (IEcoList1*)pIRuleSet->pVTbl->Item(pIRuleSet, s);
+            for (e = 0; e < pIElementList->pVTbl->Count(pIElementList); e++) {
+                pIElement = (IEcoBNF1Element*)pIElementList->pVTbl->Item(pIElementList, e);
+                currId = pIElement->pVTbl->get_Id(pIElement);
+                if (pIElement->pVTbl->CheckFlag(pIElement, ECO_BNF_1_EF_TERMINAL)) {
+                    if (currId > maxTermId) maxTermId = currId;
+                } else {
+                    if (currId > maxNonTermId) maxNonTermId = currId;
+                }
+            }
+        }
+    }
+    maxTermId++; 
+    pCMe->m_TerminalCount = maxTermId + 1;
+    pCMe->m_NonTerminalCount = maxNonTermId + 1;
+
+    /* 2. ВЫДЕЛЯЕМ ПАМЯТЬ */
+    pCMe->m_pActionTable = (int32_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, numStates * pCMe->m_TerminalCount * sizeof(int32_t));
+    pCMe->m_pGotoTable = (int32_t*)pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, numStates * pCMe->m_NonTerminalCount * sizeof(int32_t));
+    memset(pCMe->m_pActionTable, 0, numStates * pCMe->m_TerminalCount * sizeof(int32_t));
+    for(i = 0; i < numStates * pCMe->m_NonTerminalCount; i++) pCMe->m_pGotoTable[i] = -1;
+
+    /* 3. ЗАПОЛНЯЕМ МАТРИЦЫ */
+    for (i = 0; i < numStates; i++) {
+        /* GOTO */
+        for (r = 0; r < pIRuleList->pVTbl->Count(pIRuleList); r++) {
+            pIRule = (IEcoBNF1Rule*)pIRuleList->pVTbl->Item(pIRuleList, r);
+            currId = pIRule->pVTbl->get_Id(pIRule);
+            pCMe->m_pGotoTable[i * pCMe->m_NonTerminalCount + currId] = 
+                CEcoLR1_A441A18E_get_Goto(me, i, pIRule->pVTbl->get_Name(pIRule));
+        }
+
+        /* ACTION - поиск ID через итерацию по правилам */
+        for (r = 0; r < pIRuleList->pVTbl->Count(pIRuleList); r++) {
+            pIRule = (IEcoBNF1Rule*)pIRuleList->pVTbl->Item(pIRuleList, r);
+            pIRuleSet = pIRule->pVTbl->get_RuleSet(pIRule);
+            for (s = 0; s < pIRuleSet->pVTbl->Count(pIRuleSet); s++) {
+                pIElementList = (IEcoList1*)pIRuleSet->pVTbl->Item(pIRuleSet, s);
+                for (e = 0; e < pIElementList->pVTbl->Count(pIElementList); e++) {
+                    pIElement = (IEcoBNF1Element*)pIElementList->pVTbl->Item(pIElementList, e);
+                    if (pIElement->pVTbl->CheckFlag(pIElement, ECO_BNF_1_EF_TERMINAL)) {
+                        char_t* termName = pIElement->pVTbl->get_Name(pIElement);
+                        uint32_t tokenId = pIElement->pVTbl->get_Id(pIElement);
+                        
+                        int32_t action = CEcoLR1_A441A18E_get_Action(me, i, termName);
+                        if (action == 0) {
+                             action = CEcoLR1_A441A18E_ForceGetReduce(pCMe, i, termName);
+                        }
+                        pCMe->m_pActionTable[i * pCMe->m_TerminalCount + tokenId] = action;
+                    }
+                }
+            }
+        }
+        /* Символ конца */
+        pCMe->m_pActionTable[i * pCMe->m_TerminalCount + maxTermId] = 
+            CEcoLR1_A441A18E_get_Action(me, i, ECO_PARSER_SPECIAL_SYMBOL_END);
+    }
+    return 0;
+}
+
 static int16_t ECOCALLMETHOD CEcoLR1_A441A18E_InitByGrammar(/* in */ IEcoParser1LRkPtr_t me, /* in */ IEcoBNF1* pIGrammar, /* in */ int8_t lookahead) {
     CEcoLR1_A441A18E* pCMe = (CEcoLR1_A441A18E*)me;
     IEcoFSM1StateMachine* pIFSM = 0;
@@ -1270,6 +1405,7 @@ static int16_t ECOCALLMETHOD CEcoLR1_A441A18E_InitByGrammar(/* in */ IEcoParser1
     if (result != 0) {
         return result; 
     }
+    CEcoLR1_A441A18E_CompileTables(pCMe);
 
     return ERR_ECO_SUCCESES;
 }
@@ -1333,62 +1469,68 @@ static int32_t ECOCALLMETHOD CEcoLR1_A441A18E_get_Action(IEcoParser1LRkPtr_t me,
     IEcoParser1LRkItem* pIItem = 0;
     IEcoBNF1Rule* pIRule = 0;
     IEcoList1* pIElements = 0;
-    int32_t resultAction = 0; /* По умолчанию ERROR (0) */
+    IEcoList1* pAllRules = 0;
+    int32_t resultAction = 0; 
+    uint32_t ruleIdx = 0;
+    uint32_t altIdx = 0;
 
-    /* 1. Валидация входных данных */
-    if (pCMe == 0 || pCMe->m_pIItemSets == 0 || terminal == 0) {
-        return 0;
-    }
+    if (pCMe == 0 || pCMe->m_pIItemSets == 0 || terminal == 0) return 0;
+    if (stateId >= pCMe->m_pIItemSets->pVTbl->Count(pCMe->m_pIItemSets)) return 0;
 
-    if (stateId >= pCMe->m_pIItemSets->pVTbl->Count(pCMe->m_pIItemSets)) {
-        return 0;
-    }
-
-    /* 2. Извлекаем набор ситуаций для текущего состояния */
     pICurrentSet = (IEcoSet2*)pCMe->m_pIItemSets->pVTbl->Item(pCMe->m_pIItemSets, stateId);
 
-    /* 3. Проверка на SHIFT (Переход по терминалу) */
-    /* Используем функцию GOTO: если переход по терминалу ведет в новое состояние, это SHIFT */
+    /* 1. Проверка на SHIFT */
     {
         IEcoSet2* pNextSet = CEcoLR1_A441A18E_GoTo(pCMe, pICurrentSet, terminal);
         if (pNextSet && pNextSet->pVTbl->Count(pNextSet) > 0) {
             int32_t nextStateIdx = CEcoLR1_A441A18E_FindSetIndex(pCMe, pNextSet);
             if (nextStateIdx != -1) {
                 pNextSet->pVTbl->Release(pNextSet);
-                return nextStateIdx; /* Положительное число = SHIFT в состояние N */
+                return nextStateIdx; 
             }
         }
         if (pNextSet) pNextSet->pVTbl->Release(pNextSet);
     }
 
-    /* 4. Проверка на REDUCE или ACCEPT */
-    /* Итерируемся по всем пунктам (Items) внутри состояния */
+    /* 2. Проверка на REDUCE или ACCEPT */
+    pAllRules = pCMe->m_pIExtGrammar->pVTbl->get_RuleList(pCMe->m_pIExtGrammar);
+    
     if (pICurrentSet->pVTbl->QueryInterface(pICurrentSet, &IID_IEcoContainer1, (voidptr_t*)&pIContainer) == 0) {
         pIIter = pIContainer->pVTbl->GetIterator(pIContainer, ECO_CONTAINER_1_ITER_BEGIN, 0);
         while (pIIter && pIIter->pVTbl->Value(pIIter)) {
+			uint32_t count = 0;
+            bool_t isEpsilon = 0;
+
             pIItem = (IEcoParser1LRkItem*)pIIter->pVTbl->Value(pIIter);
             pIRule = pIItem->pVTbl->get_Rule(pIItem);
-            
-            /* Получаем правую часть правила для проверки позиции маркера */
-            pIElements = (IEcoList1*)pIRule->pVTbl->get_RuleSet(pIRule)->pVTbl->Item(pIRule->pVTbl->get_RuleSet(pIRule), pIItem->pVTbl->get_RuleSetId(pIItem));
+            altIdx = pIItem->pVTbl->get_RuleSetId(pIItem); 
+            pIElements = (IEcoList1*)pIRule->pVTbl->get_RuleSet(pIRule)->pVTbl->Item(pIRule->pVTbl->get_RuleSet(pIRule), altIdx);
 
-            /* Если маркер стоит в самом конце: A -> alpha . */
-            if ((uint32_t)pIItem->pVTbl->get_MarkerPosition(pIItem) == pIElements->pVTbl->Count(pIElements)) {
-                
-                /* Проверяем Lookahead (NextTerms) */
+            if (pIElements == 0) {
+                isEpsilon = 1;
+            } else {
+                count = pIElements->pVTbl->Count(pIElements);
+                if (count == 0) {
+                    isEpsilon = 1;
+                } else if (count == 1) {
+                    IEcoBNF1Element* pElem = (IEcoBNF1Element*)pIElements->pVTbl->Item(pIElements, 0);
+                    if (pElem == 0 || *(void**)pElem == 0 || (pElem->pVTbl->get_Name(pElem) && strcmp(pElem->pVTbl->get_Name(pElem), "epsilon") == 0)) {
+                        isEpsilon = 1;
+                    }
+                }
+            }
+
+            /* Если маркер в конце: A -> alpha . ИЛИ эпсилон-правило */
+            if ((uint32_t)pIItem->pVTbl->get_MarkerPosition(pIItem) == count || isEpsilon) {
                 IEcoSet2* pNextTerms = pIItem->pVTbl->get_NextTerms(pIItem);
-                
-                /* Если текущий входной терминал входит в множество предпросмотра данного правила */
                 if (pNextTerms && pNextTerms->pVTbl->Contains(pNextTerms, terminal)) {
-                    
-                    /* Проверка на ACCEPT: Специальное правило S' -> S . и символ конца $ */
-                    if (pIItem->pVTbl->get_RuleSetId(pIItem) == 0 && 
-                        strcmp(terminal, ECO_PARSER_SPECIAL_SYMBOL_END) == 0) {
-                        resultAction = 0x7FFFFFFF; /* Константа ACCEPT */
+                    for (ruleIdx = 0; ruleIdx < pAllRules->pVTbl->Count(pAllRules); ruleIdx++) {
+                        if (pAllRules->pVTbl->Item(pAllRules, ruleIdx) == (void*)pIRule) break;
+                    }
+                    if (ruleIdx == 0 && strcmp(terminal, ECO_PARSER_SPECIAL_SYMBOL_END) == 0) {
+                        resultAction = 0x7FFF;
                     } else {
-                        /* Отрицательное число = REDUCE по правилу M */
-                        /* Индекс берется из RuleSetId или глобального списка правил */
-                        resultAction = -(int32_t)(pIItem->pVTbl->get_RuleSetId(pIItem));
+                        resultAction = -(int32_t)(((ruleIdx + 1) << 8) | (altIdx & 0xFF));
                     }
                     break;
                 }
@@ -1443,6 +1585,23 @@ static int32_t ECOCALLMETHOD CEcoLR1_A441A18E_get_Goto(IEcoParser1LRkPtr_t me, u
     return nextStateIdx;
 }
 
+static int32_t ECOCALLMETHOD CEcoLR1_A441A18E_get_ActionById(IEcoParser1LRkPtr_t me, uint32_t stateId, uint32_t terminalId) {
+    CEcoLR1_A441A18E* pCMe = (CEcoLR1_A441A18E*)me;
+    if (!pCMe->m_pActionTable || stateId >= pCMe->m_pIItemSets->pVTbl->Count(pCMe->m_pIItemSets) || terminalId >= pCMe->m_TerminalCount) {
+        return 0; /* Error */
+    }
+    /* Прямой доступ к памяти: O(1) */
+    return pCMe->m_pActionTable[stateId * pCMe->m_TerminalCount + terminalId];
+}
+
+static int32_t ECOCALLMETHOD CEcoLR1_A441A18E_get_GotoById(IEcoParser1LRkPtr_t me, uint32_t stateId, uint32_t nonTerminalId) {
+    CEcoLR1_A441A18E* pCMe = (CEcoLR1_A441A18E*)me;
+    if (!pCMe->m_pGotoTable || stateId >= pCMe->m_pIItemSets->pVTbl->Count(pCMe->m_pIItemSets) || nonTerminalId >= pCMe->m_NonTerminalCount) {
+        return -1;
+    }
+    /* Прямой доступ к памяти: O(1) */
+    return pCMe->m_pGotoTable[stateId * pCMe->m_NonTerminalCount + nonTerminalId];
+}
 
 static IEcoFSM1StateMachine* ECOCALLMETHOD CEcoLR1_A441A18E_get_StateMachine(/* in */ IEcoParser1LRkPtr_t me) {
     CEcoLR1_A441A18E* pCMe = (CEcoLR1_A441A18E*)me;
@@ -1644,6 +1803,8 @@ IEcoParser1LRkVTbl g_x1DB8846466B14AC699B1BBD4F2AE2F9BVTbl_A441A18E = {
     CEcoLR1_A441A18E_get_ItemSets,
     CEcoLR1_A441A18E_get_Action,
     CEcoLR1_A441A18E_get_Goto,
+    CEcoLR1_A441A18E_get_ActionById,
+    CEcoLR1_A441A18E_get_GotoById,
     CEcoLR1_A441A18E_get_StateMachine,
     CEcoLR1_A441A18E_get_Reduce,
     CEcoLR1_A441A18E_get_ActionTable,

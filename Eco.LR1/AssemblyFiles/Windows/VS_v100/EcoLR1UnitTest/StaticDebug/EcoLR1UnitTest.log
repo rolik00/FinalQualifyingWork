@@ -1,6 +1,8 @@
-﻿Build started 06.05.2026 17:09:01.
+﻿Build started 17.05.2026 16:18:48.
      1>Project "D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.LR1\AssemblyFiles\Windows\VS_v100\EcoLR1UnitTest.vcxproj" on node 2 (rebuild target(s)).
-     1>InitializeBuildStatus:
+     1>_PrepareForClean:
+         Deleting file "EcoLR1UnitTest\StaticDebug\EcoLR1UnitTest.lastbuildstate".
+       InitializeBuildStatus:
          Creating "EcoLR1UnitTest\StaticDebug\EcoLR1UnitTest.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
          D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I..\..\..\UnitTestFiles\HeaderFiles..\..\..\HeaderFiles /I..\..\..\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Core1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.InterfaceBus1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.System1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.MemoryManager1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FileSystemManagement1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Comparator1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Dictionary1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.String1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Stack1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Set2\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Map2\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Data1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BNF1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.PDA1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FSM1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Queue1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.DateTime1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Log1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.List1\SharedFiles /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D ECO_WINDOWS /D ECO_WIN32 /D ECO_X86_32 /D UGUID_UTILITY /D ECO_LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"EcoLR1UnitTest\StaticDebug\\" /Fd"EcoLR1UnitTest\StaticDebug\vc100.pdb" /Gz /TC /analyze- /errorReport:prompt ..\..\..\UnitTestFiles\SourceFiles\EcoLR1.c
@@ -75,4 +77,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:12.85
+Time Elapsed 00:00:09.05

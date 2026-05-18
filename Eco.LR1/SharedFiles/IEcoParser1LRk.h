@@ -69,6 +69,15 @@ typedef struct IEcoParser1LRkVTbl {
     /* GOTO: Куда перейти из состояния stateId по нетерминалу nonTerminal? */
     int32_t (ECOCALLMETHOD *get_Goto)(IEcoParser1LRkPtr_t me, uint32_t stateId, char_t* nonTerminal);
 
+    /* ACTION BY ID: Максимальная скорость. 
+       terminalId — это индекс терминала в TerminalAlphabet грамматики. 
+       Именно этот ID должен возвращать лексер. */
+    int32_t (ECOCALLMETHOD *get_ActionById)(IEcoParser1LRkPtr_t me, uint32_t stateId, uint32_t terminalId);
+
+    /* GOTO BY ID: Прямой переход после свертки.
+       nonTerminalId — это индекс нетерминала в NonTerminalAlphabet. */
+    int32_t (ECOCALLMETHOD *get_GotoById)(IEcoParser1LRkPtr_t me, uint32_t stateId, uint32_t nonTerminalId);
+
 
     IEcoFSM1StateMachine* (ECOCALLMETHOD *get_StateMachine)(/* in */ IEcoParser1LRkPtr_t me);
     IEcoList1* (ECOCALLMETHOD *get_Reduce)(/* in */ IEcoParser1LRkPtr_t me, uint32_t stateId, char_t* nextTerm);

@@ -51,6 +51,7 @@ IEcoBNF1* GetTestLR0_2(/* in */ IEcoBNF1* pIBNF);
 IEcoBNF1* GetTestC(/* in */ IEcoBNF1* pIBNF);
 IEcoBNF1* GetFullTestC(/* in */ IEcoBNF1* pIBNF);
 IEcoBNF1* GetTestIDL(/* in */ IEcoBNF1* pIBNF);
+IEcoBNF1* GetTestIDL2(/* in */ IEcoBNF1* pIBNF);
 
 bool_t testLR0_1(/* in */ IEcoLog1* pILog, /* in */ IEcoString1* pIStr, /* in */ IEcoMemoryAllocator1* pIMem, /* in */ IEcoBNF1* pIBNF, /* in */ IEcoParser1LRk* pILRk);
 bool_t testLR0_2(/* in */ IEcoLog1* pILog, /* in */ IEcoString1* pIStr, /* in */ IEcoMemoryAllocator1* pIMem, /* in */ IEcoBNF1* pIBNF, /* in */ IEcoParser1LRk* pILRk);
@@ -60,6 +61,7 @@ bool_t testLR1_2(/* in */ IEcoLog1* pILog, /* in */ IEcoString1* pIStr, /* in */
 bool_t testC(/* in */ IEcoLog1* pILog, /* in */ IEcoString1* pIStr, /* in */ IEcoMemoryAllocator1* pIMem, /* in */ IEcoBNF1* pIBNF, /* in */ IEcoParser1LRk* pILRk);
 bool_t testFullC(/* in */ IEcoLog1* pILog, /* in */ IEcoString1* pIStr, /* in */ IEcoMemoryAllocator1* pIMem, /* in */ IEcoBNF1* pIBNF, /* in */ IEcoParser1LRk* pILRk);
 bool_t testIDL(/* in */ IEcoLog1* pILog, /* in */ IEcoString1* pIStr, /* in */ IEcoMemoryAllocator1* pIMem, /* in */ IEcoBNF1* pIBNF, /* in */ IEcoParser1LRk* pILRk);
+bool_t testIDL2(/* in */ IEcoLog1* pILog, /* in */ IEcoString1* pIStr, /* in */ IEcoMemoryAllocator1* pIMem, /* in */ IEcoBNF1* pIBNF, /* in */ IEcoParser1LRk* pILRk);
 
 /*
  *
@@ -168,14 +170,15 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     if (result != 0 || pIBNF == 0) goto Release;
     
     /* Выполнение тестов */
-    testLR0_1(pILog, pIStr, pIMem, pIBNF, pILRk);
-    testLR0_2(pILog, pIStr, pIMem, pIBNF, pILRk);
-    testFailLR1_as_LR0(pILog, pIStr, pIMem, pIBNF, pILRk);
-    testLR1_1(pILog, pIStr, pIMem, pIBNF, pILRk);
-    testLR1_2(pILog, pIStr, pIMem, pIBNF, pILRk);
-    testC(pILog, pIStr, pIMem, pIBNF, pILRk);
-	testFullC(pILog, pIStr, pIMem, pIBNF, pILRk);
-    testIDL(pILog, pIStr, pIMem, pIBNF, pILRk);
+    //testLR0_1(pILog, pIStr, pIMem, pIBNF, pILRk);
+    //testLR0_2(pILog, pIStr, pIMem, pIBNF, pILRk);
+    //testFailLR1_as_LR0(pILog, pIStr, pIMem, pIBNF, pILRk);
+    //testLR1_1(pILog, pIStr, pIMem, pIBNF, pILRk);
+    //testLR1_2(pILog, pIStr, pIMem, pIBNF, pILRk);
+    //testC(pILog, pIStr, pIMem, pIBNF, pILRk);
+	//testFullC(pILog, pIStr, pIMem, pIBNF, pILRk);
+    //testIDL(pILog, pIStr, pIMem, pIBNF, pILRk);
+    testIDL2(pILog, pIStr, pIMem, pIBNF, pILRk);
 
     pILog->pVTbl->Info(pILog, "End Testing LR Parser Algorithms");
 
@@ -982,6 +985,99 @@ IEcoBNF1* GetTestIDL(IEcoBNF1* pIBNF) {
     return pIBNF;
 }
 
+
+IEcoBNF1* GetTestIDL2(IEcoBNF1* pIBNF) {
+    IEcoBNF1Rule* pIRule = 0;
+    uint32_t iSet = 0;
+
+    /* 1. Интерфейс: interface id [inheritance] { methods } */
+    pIRule = pIBNF->pVTbl->AddRule(pIBNF, "intf"); 
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "interface");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "id");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, ":");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "id");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "{");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_NONE, "methods");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "}");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "interface");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "id");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "{");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_NONE, "methods");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "}");
+
+    /* 2. Список методов: ЛЕВАЯ РЕКУРСИЯ (Стабильно для LR) */
+    pIRule = pIBNF->pVTbl->AddRule(pIBNF, "methods"); 
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "methods");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_NONE, "method");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "method");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_EPSILON, "epsilon");
+
+    /* 3. Метод */
+    pIRule = pIBNF->pVTbl->AddRule(pIBNF, "method"); 
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "full_type");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "id");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "(");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_NONE, "params");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, ")");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, ";");
+
+    /* 4. Список параметров: ЛЕВАЯ РЕКУРСИЯ */
+    pIRule = pIBNF->pVTbl->AddRule(pIBNF, "params");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "params");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, ",");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_NONE, "param");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "param");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_EPSILON, "epsilon");
+
+    /* 5. Параметр */
+    pIRule = pIBNF->pVTbl->AddRule(pIBNF, "param");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "[");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_NONE, "attr");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "]");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_NONE, "full_type");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "id");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "full_type");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "id");
+
+    /* 6. Атрибуты */
+    pIRule = pIBNF->pVTbl->AddRule(pIBNF, "attr");
+    iSet = 0; pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "in");
+    iSet = 0; pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "out");
+
+    /* 7. Типы */
+    pIRule = pIBNF->pVTbl->AddRule(pIBNF, "full_type");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "base_type");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "*");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "*");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "base_type");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "*");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "base_type");
+
+    /* 8. Базовые типы */
+    pIRule = pIBNF->pVTbl->AddRule(pIBNF, "base_type");
+    iSet = 0; pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "int16_t");
+    iSet = 0; pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "char_t");
+    iSet = 0; pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "voidptr_t");
+    iSet = 0; pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "void");
+
+    return pIBNF;
+}
+
+
 /* ТЕСТ 1: Базовый тест для LR(0) проверяет способность алгоритма сделать операции SHIFT */
 bool_t testLR0_1(/* in */ IEcoLog1* pILog, /* in */ IEcoString1* pIStr, /* in */ IEcoMemoryAllocator1* pIMem, /* in */ IEcoBNF1* pIBNF, /* in */ IEcoParser1LRk* pILRk) {
     int16_t result = 0;
@@ -1134,6 +1230,28 @@ bool_t testIDL(/* in */ IEcoLog1* pILog, /* in */ IEcoString1* pIStr, /* in */ I
     pILog->pVTbl->Info(pILog, "--- [ TEST Simplified IDL Grammar LR(1) ] ---");
     
     pIBNF = GetTestIDL(pIBNF);
+    
+    OutputDiagnosticInfoOfBNF(pILog, pIStr, pIBNF);
+    
+    result = pILRk->pVTbl->InitByGrammar(pILRk, pIBNF, 1);
+    if (result == 0) {
+        OutputDiagnosticInfoOfParser(pILog, pIStr, pILRk);
+        OutputDiagnosticInfoOfFSM(pILog, pIStr, pILRk);
+    } else {
+        pILog->pVTbl->ErrorFormat(pILog, "InitByGrammar failed with code: %d", result);
+    }
+    
+    pIBNF->pVTbl->Clear(pIBNF);
+    return 0;
+}
+
+
+/* ТЕСТ 9: Тест для idl2 */
+bool_t testIDL2(/* in */ IEcoLog1* pILog, /* in */ IEcoString1* pIStr, /* in */ IEcoMemoryAllocator1* pIMem, /* in */ IEcoBNF1* pIBNF, /* in */ IEcoParser1LRk* pILRk) {
+    int16_t result = 0;
+    pILog->pVTbl->Info(pILog, "--- [ TEST Simplified IDL Grammar LR(1) ] ---");
+    
+    pIBNF = GetTestIDL2(pIBNF);
     
     OutputDiagnosticInfoOfBNF(pILog, pIStr, pIBNF);
     

@@ -78,6 +78,10 @@ typedef struct CEcoLR1_A441A18E {
     IEcoMap2* m_pIItemSetIdxMap;
     IEcoList1* m_pIGoTo;
     IEcoComparator1* m_pIItemComparator;
+    int32_t* m_pActionTable;    /* Матрица [States][Terminals] */
+    int32_t* m_pGotoTable;      /* Матрица [States][NonTerminals] */
+    uint32_t m_TerminalCount;
+    uint32_t m_NonTerminalCount;
 
 } CEcoLR1_A441A18E;
 
