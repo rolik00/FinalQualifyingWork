@@ -69,7 +69,7 @@ typedef struct CEcoIDL1_40BB8A88 {
     IEcoAST1* m_pIAST;
     char_t* m_Name;
 
-	/* Хранилище зарегистрированных эмиттеров (Key-Value) */
+	/* пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (Key-Value) */
     CEcoIDL1EmitterConfig_t m_Emitters[16];
     uint32_t m_cEmitters;
 

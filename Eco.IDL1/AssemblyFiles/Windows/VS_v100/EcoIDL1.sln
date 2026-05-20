@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+# Visual C++ Express 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EcoIDL1", "EcoIDL1.vcxproj", "{06FA33EF-90F6-4FB6-ADBB-CF7E1CAAE7FE}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EcoIDL1UnitTest", "EcoIDL1UnitTest.vcxproj", "{B3EFB48D-16DD-4FBC-8450-E0C6363A40E2}"
@@ -64,20 +64,16 @@ Global
 		{B3EFB48D-16DD-4FBC-8450-E0C6363A40E2}.StaticRelease|x64.ActiveCfg = StaticRelease|Win32
 		{BB103824-9085-4356-AE57-D3F16851F19F}.DynamicDebug|Win32.ActiveCfg = DynamicDebug|Win32
 		{BB103824-9085-4356-AE57-D3F16851F19F}.DynamicDebug|Win32.Build.0 = DynamicDebug|Win32
-		{BB103824-9085-4356-AE57-D3F16851F19F}.DynamicDebug|x64.ActiveCfg = DynamicDebug|x64
-		{BB103824-9085-4356-AE57-D3F16851F19F}.DynamicDebug|x64.Build.0 = DynamicDebug|x64
+		{BB103824-9085-4356-AE57-D3F16851F19F}.DynamicDebug|x64.ActiveCfg = DynamicDebug|Win32
 		{BB103824-9085-4356-AE57-D3F16851F19F}.DynamicRelease|Win32.ActiveCfg = DynamicRelease|Win32
 		{BB103824-9085-4356-AE57-D3F16851F19F}.DynamicRelease|Win32.Build.0 = DynamicRelease|Win32
-		{BB103824-9085-4356-AE57-D3F16851F19F}.DynamicRelease|x64.ActiveCfg = DynamicRelease|x64
-		{BB103824-9085-4356-AE57-D3F16851F19F}.DynamicRelease|x64.Build.0 = DynamicRelease|x64
+		{BB103824-9085-4356-AE57-D3F16851F19F}.DynamicRelease|x64.ActiveCfg = DynamicRelease|Win32
 		{BB103824-9085-4356-AE57-D3F16851F19F}.StaticDebug|Win32.ActiveCfg = StaticDebug|Win32
 		{BB103824-9085-4356-AE57-D3F16851F19F}.StaticDebug|Win32.Build.0 = StaticDebug|Win32
-		{BB103824-9085-4356-AE57-D3F16851F19F}.StaticDebug|x64.ActiveCfg = StaticDebug|x64
-		{BB103824-9085-4356-AE57-D3F16851F19F}.StaticDebug|x64.Build.0 = StaticDebug|x64
+		{BB103824-9085-4356-AE57-D3F16851F19F}.StaticDebug|x64.ActiveCfg = StaticDebug|Win32
 		{BB103824-9085-4356-AE57-D3F16851F19F}.StaticRelease|Win32.ActiveCfg = StaticRelease|Win32
 		{BB103824-9085-4356-AE57-D3F16851F19F}.StaticRelease|Win32.Build.0 = StaticRelease|Win32
-		{BB103824-9085-4356-AE57-D3F16851F19F}.StaticRelease|x64.ActiveCfg = StaticRelease|x64
-		{BB103824-9085-4356-AE57-D3F16851F19F}.StaticRelease|x64.Build.0 = StaticRelease|x64
+		{BB103824-9085-4356-AE57-D3F16851F19F}.StaticRelease|x64.ActiveCfg = StaticRelease|Win32
 		{5A4E8DC3-74FB-4AFA-BBE2-2152ECA7B3E0}.DynamicDebug|Win32.ActiveCfg = DynamicDebug|Win32
 		{5A4E8DC3-74FB-4AFA-BBE2-2152ECA7B3E0}.DynamicDebug|Win32.Build.0 = DynamicDebug|Win32
 		{5A4E8DC3-74FB-4AFA-BBE2-2152ECA7B3E0}.DynamicDebug|x64.ActiveCfg = DynamicDebug|x64

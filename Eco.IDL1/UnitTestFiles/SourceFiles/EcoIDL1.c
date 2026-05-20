@@ -27,6 +27,7 @@
 #include "IEcoCommandArguments1.h"
 #include "IdEcoString1.h"
 #include "IdEcoList1.h"
+#include "IdEcoQueue1.h"
 #include "IdEcoStdIOC89.h"
 #include "IdEcoAST1.h"
 #include "IdEcoFSM1.h"
@@ -36,8 +37,10 @@
 #include "IdEcoDictionary1.h"
 #include "IdEcoDateTime1.h"
 #include "IdEcoData1.h"
-#include "IdEcoMap1.h"
-#include "IdEcoSet1.h"
+#include "IdEcoMap2.h"
+#include "IdEcoSet2.h"
+#include "IdEcoFLD1.h"
+#include "IdEcoPDA1.h"
 #include "IdEcoComparator1.h"
 #include "IdEcoBLA1.h"
 #include "IdEcoBSA1.h"
@@ -306,7 +309,7 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
         goto Release;
     }
     /* Регистрация статического компонента для работы с LR */
-    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoLR1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_69173E0D97DF4B23AAE05D9CDA852EE2);
+    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoLR1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_F4561FD215A34CC5BA1D8791A441A18E);
     if (result != 0 ) {
         /* Освобождение в случае ошибки */
         goto Release;
@@ -360,13 +363,25 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
         goto Release;
     }
     /* Регистрация статического компонента для работы со стеком */
-    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoSet1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_7750135D34D7461897B912F7CC615F72);
+    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoSet2, (IEcoUnknown*)GetIEcoComponentFactoryPtr_58CDC2713209420CAC919BE1E16F4CA4);
     if (result != 0 ) {
         /* Освобождение в случае ошибки */
         goto Release;
     }
     /* Регистрация статического компонента для работы с датой и вреенем */
     result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoDateTime1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_5B2BA17BEA704527BC708F88568FE115);
+    if (result != 0 ) {
+        /* Освобождение в случае ошибки */
+        goto Release;
+    }
+    /* Регистрация статического компонента для работы с Queue */
+    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoQueue1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_25D72F83A2564F4E9F59E489BE85E2A4);
+    if (result != 0 ) {
+        /* Освобождение в случае ошибки */
+        goto Release;
+    }
+    /* Регистрация статического компонента для работы с Dictionary */
+    result =pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoDictionary1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_2912A7C7E0B84B4D9BFE9500EF4667D3);
     if (result != 0 ) {
         /* Освобождение в случае ошибки */
         goto Release;
@@ -378,14 +393,26 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
         goto Release;
     }
     /* Регистрация статического компонента для работы с интерфейсом сравнениия */
-    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoComparator1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_C7ED3BA4B6EB4385BBDB3C6AC5C7A394);
+    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoComparator1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_44CE56A815DF433EB567D8943DA32D8E);
     if (result != 0) {
         /* Освобождение в случае ошибки */
         goto Release;
     }
 
     /* Регистрация статического компонента для работы с ассоциированным масивом */
-    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoMap1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_0D7907DBE1C14B9E9B9FD9E8D9E251DF);
+    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoMap2, (IEcoUnknown*)GetIEcoComponentFactoryPtr_715AF131CD174E90AAF3B753221B9B73);
+    if (result != 0) {
+        /* Освобождение в случае ошибки */
+        goto Release;
+    }
+    /* Регистрация статического компонента для работы с форматом формальных языков */
+    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoFLD1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_F9E1B4FA37A7446C94A4D1E8BAA65DB1);
+    if (result != 0) {
+        /* Освобождение в случае ошибки */
+        goto Release;
+    }
+    /* Регистрация статического компонента для работы с PDA */
+    result = pIBus->pVTbl->RegisterComponent(pIBus, &CID_EcoPDA1, (IEcoUnknown*)GetIEcoComponentFactoryPtr_A03120BB3AF5425EBDE0A5535B423579);
     if (result != 0) {
         /* Освобождение в случае ошибки */
         goto Release;
