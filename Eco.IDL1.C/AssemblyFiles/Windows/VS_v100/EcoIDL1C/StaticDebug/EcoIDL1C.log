@@ -1,0 +1,29 @@
+﻿Build started 21.05.2026 17:39:06.
+     1>Project "D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1.C\AssemblyFiles\Windows\VS_v100\EcoIDL1C.vcxproj" on node 2 (rebuild target(s)).
+     1>_PrepareForClean:
+         Deleting file "EcoIDL1C\StaticDebug\EcoIDL1C.lastbuildstate".
+       InitializeBuildStatus:
+         Creating "EcoIDL1C\StaticDebug\EcoIDL1C.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I..\..\..\HeaderFiles /I..\..\..\SharedFiles /I..\..\..\..\Eco.IDL1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Core1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.InterfaceBus1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.System1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.MemoryManager1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FileSystemManagement1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Visitor1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Data1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FSM1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BRE1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BNF1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BLA1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.AST1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.String1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.List1\SharedFiles /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D ECO_WINDOWS /D ECO_WIN32 /D ECO_X86_32 /D UGUID_UTILITY /D ECO_LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"EcoIDL1C\StaticDebug\\" /Fd"EcoIDL1C\StaticDebug\vc100.pdb" /Gz /TC /analyze- /errorReport:prompt ..\..\..\SourceFiles\CEcoIDL1C.c ..\..\..\SourceFiles\CEcoIDL1CFactory.c ..\..\..\SourceFiles\CEcoIDL1CVisitor.c
+         CEcoIDL1CVisitor.c
+     1>d:\myproject\fqw\eco.toolchain\eco.framework\eco.idl1.c\sourcefiles\cecoidl1cvisitor.c(90): warning C4018: '<' : signed/unsigned mismatch
+     1>d:\myproject\fqw\eco.toolchain\eco.framework\eco.idl1.c\sourcefiles\cecoidl1cvisitor.c(237): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 d:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'sprintf'
+         CEcoIDL1CFactory.c
+         CEcoIDL1C.c
+         Generating Code...
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(1151,5): warning MSB8012: TargetPath(D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1C\StaticDebug\E89F37B5194F4F4A8ADE1FFB28028A01.lib) does not match the Library's OutputFile property value (D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1.C\BuildFiles\Windows\x86\StaticDebug\E89F37B5194F4F4A8ADE1FFB28028A01.lib). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Lib.OutputFile).
+       Lib:
+         D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\Lib.exe /OUT:"..\..\..\BuildFiles\Windows\x86\StaticDebug\E89F37B5194F4F4A8ADE1FFB28028A01.lib" /NOLOGO /LTCG EcoIDL1C\StaticDebug\CEcoIDL1C.obj
+         EcoIDL1C\StaticDebug\CEcoIDL1CFactory.obj
+         EcoIDL1C\StaticDebug\CEcoIDL1CVisitor.obj
+         EcoIDL1C.vcxproj -> D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1C\StaticDebug\E89F37B5194F4F4A8ADE1FFB28028A01.lib
+       FinalizeBuildStatus:
+         Deleting file "EcoIDL1C\StaticDebug\EcoIDL1C.unsuccessfulbuild".
+         Touching "EcoIDL1C\StaticDebug\EcoIDL1C.lastbuildstate".
+     1>Done Building Project "D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1.C\AssemblyFiles\Windows\VS_v100\EcoIDL1C.vcxproj" (rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:02.01

@@ -103,6 +103,9 @@ static int16_t ECOCALLMETHOD CEcoIDL1_40BB8A88_SetDefaultLexer(CEcoIDL1_40BB8A88
                                 escaped[1] = Word[0];
                                 pCMe->m_pILexicalRules->pVTbl->AddRuleRE(pCMe->m_pILexicalRules, 0, escaped, currentId);
                                 pCMe->m_pILexicalRules->pVTbl->SetPriority(pCMe->m_pILexicalRules, currentId, 10);
+                            } else if (pCMe->m_pIStr->pVTbl->Compare(pCMe->m_pIStr, Word, "uuid_literal") == 0) {
+                                pCMe->m_pILexicalRules->pVTbl->AddRuleRE(pCMe->m_pILexicalRules, 0, "([0-9]|[a-f]|[A-F]){8}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){4}-([0-9]|[a-f]|[A-F]){12}", currentId);
+                                pCMe->m_pILexicalRules->pVTbl->SetPriority(pCMe->m_pILexicalRules, currentId, 6);
                             } else {
                                 pCMe->m_pILexicalRules->pVTbl->AddRuleRE(pCMe->m_pILexicalRules, 0, Word, currentId);
                                 pCMe->m_pILexicalRules->pVTbl->SetPriority(pCMe->m_pILexicalRules, currentId, 10);
@@ -156,9 +159,48 @@ static int16_t ECOCALLMETHOD CEcoIDL1_40BB8A88_SetDefaultSyntax(CEcoIDL1_40BB8A8
 
     pIRule = pIBNF->pVTbl->AddRule(pIBNF, "start");
     iSet = 0;
-    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "intf");
+	pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "translation_unit");
 
-    /* 1. intf */
+	pIRule = pIBNF->pVTbl->AddRule(pIBNF, "translation_unit");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "import_declarations");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_NONE, "interface_declaration");
+
+	pIRule = pIBNF->pVTbl->AddRule(pIBNF, "import_declarations");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "import_declarations");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_NONE, "import_declaration");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_EPSILON, "epsilon");
+
+	pIRule = pIBNF->pVTbl->AddRule(pIBNF, "import_declaration");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "import");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "string_literal");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, ";");
+
+	pIRule = pIBNF->pVTbl->AddRule(pIBNF, "interface_declaration");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "attributes");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_NONE, "intf");
+
+	pIRule = pIBNF->pVTbl->AddRule(pIBNF, "attributes");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "[");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_NONE, "attribute_list");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "]");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_EPSILON, "epsilon");
+
+    pIRule = pIBNF->pVTbl->AddRule(pIBNF, "attribute_list");
+    iSet = 0;
+    pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "uuid");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "(");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "{");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "uuid_literal");
+	pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "}");
+    pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, ")");
+
     pIRule = pIBNF->pVTbl->AddRule(pIBNF, "intf"); 
     iSet = 0;
     pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "interface");
@@ -177,7 +219,6 @@ static int16_t ECOCALLMETHOD CEcoIDL1_40BB8A88_SetDefaultSyntax(CEcoIDL1_40BB8A8
     pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "}");
     pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, ";");
 
-    /* 2. methods */
     pIRule = pIBNF->pVTbl->AddRule(pIBNF, "methods"); 
     iSet = 0;
     pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "methods");
@@ -187,7 +228,6 @@ static int16_t ECOCALLMETHOD CEcoIDL1_40BB8A88_SetDefaultSyntax(CEcoIDL1_40BB8A8
     iSet = 0;
     pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_EPSILON, "epsilon");
 
-    /* 3. method */
     pIRule = pIBNF->pVTbl->AddRule(pIBNF, "method"); 
     iSet = 0;
     pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "base_type");
@@ -197,14 +237,12 @@ static int16_t ECOCALLMETHOD CEcoIDL1_40BB8A88_SetDefaultSyntax(CEcoIDL1_40BB8A8
     pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, ")");
     pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, ";");
 
-    /* 4. params */
     pIRule = pIBNF->pVTbl->AddRule(pIBNF, "params");
     iSet = 0; 
 	pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "params_list");
     iSet = 0; 
 	pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_EPSILON, "epsilon");
 
-    /* 5. params_list */
     pIRule = pIBNF->pVTbl->AddRule(pIBNF, "params_list");
     iSet = 0;
     pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "params_list");
@@ -213,7 +251,6 @@ static int16_t ECOCALLMETHOD CEcoIDL1_40BB8A88_SetDefaultSyntax(CEcoIDL1_40BB8A8
     iSet = 0;
     pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "param");
 
-    /* 6. param */
     pIRule = pIBNF->pVTbl->AddRule(pIBNF, "param");
     iSet = 0;
     pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "[");
@@ -240,14 +277,12 @@ static int16_t ECOCALLMETHOD CEcoIDL1_40BB8A88_SetDefaultSyntax(CEcoIDL1_40BB8A8
     pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_NONE, "base_type");
     pIRule->pVTbl->AddConcatenation(pIRule, iSet, ECO_BNF_1_EF_TERMINAL, "id");
 
-    /* 7. attr */
     pIRule = pIBNF->pVTbl->AddRule(pIBNF, "attr");
     iSet = 0; 
 	pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "in");
     iSet = 0; 
 	pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "out");
 
-    /* 8. base_type */
     pIRule = pIBNF->pVTbl->AddRule(pIBNF, "base_type");
     iSet = 0; 
 	pIRule->pVTbl->AddAlternative(pIRule, &iSet, ECO_BNF_1_EF_TERMINAL, "int16_t");

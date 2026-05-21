@@ -1,4 +1,4 @@
-﻿Build started 20.05.2026 17:38:26.
+﻿Build started 21.05.2026 17:39:08.
      1>Project "D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1UnitTest.vcxproj" on node 5 (rebuild target(s)).
      1>_PrepareForClean:
          Deleting file "EcoIDL1UnitTest\StaticDebug\EcoIDL1UnitTest.lastbuildstate".
@@ -94,4 +94,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:02.65
+Time Elapsed 00:00:02.82

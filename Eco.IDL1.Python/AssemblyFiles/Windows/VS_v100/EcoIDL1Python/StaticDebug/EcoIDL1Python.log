@@ -1,0 +1,27 @@
+﻿Build started 21.05.2026 17:39:06.
+     1>Project "D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1.Python\AssemblyFiles\Windows\VS_v100\EcoIDL1Python.vcxproj" on node 3 (rebuild target(s)).
+     1>_PrepareForClean:
+         Deleting file "EcoIDL1Python\StaticDebug\EcoIDL1Python.lastbuildstate".
+       InitializeBuildStatus:
+         Creating "EcoIDL1Python\StaticDebug\EcoIDL1Python.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I..\..\..\HeaderFiles /I..\..\..\SharedFiles /I..\..\..\..\Eco.IDL1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Core1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.InterfaceBus1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.System1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.MemoryManager1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FileSystemManagement1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Visitor1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.Data1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.FSM1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BRE1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BNF1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.BLA1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.AST1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.String1\SharedFiles /ID:\Downloads\Eco.Framework\Eco.List1\SharedFiles /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D ECO_WINDOWS /D ECO_WIN32 /D ECO_X86_32 /D UGUID_UTILITY /D ECO_LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"EcoIDL1Python\StaticDebug\\" /Fd"EcoIDL1Python\StaticDebug\vc100.pdb" /Gz /TC /analyze- /errorReport:prompt ..\..\..\SourceFiles\CEcoIDL1Python.c ..\..\..\SourceFiles\CEcoIDL1PythonFactory.c ..\..\..\SourceFiles\CEcoIDL1PythonVisitor.c
+         CEcoIDL1PythonVisitor.c
+     1>d:\myproject\fqw\eco.toolchain\eco.framework\eco.idl1.python\sourcefiles\cecoidl1pythonvisitor.c(187): warning C4018: '<' : signed/unsigned mismatch
+         CEcoIDL1PythonFactory.c
+         CEcoIDL1Python.c
+         Generating Code...
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(1151,5): warning MSB8012: TargetPath(D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1Python\StaticDebug\4F8058F313B346A887D59E582C7799FC.lib) does not match the Library's OutputFile property value (D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1.Python\BuildFiles\Windows\x86\StaticDebug\4F8058F313B346A887D59E582C7799FC.lib). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Lib.OutputFile).
+       Lib:
+         D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\Lib.exe /OUT:"..\..\..\BuildFiles\Windows\x86\StaticDebug\4F8058F313B346A887D59E582C7799FC.lib" /NOLOGO /LTCG EcoIDL1Python\StaticDebug\CEcoIDL1Python.obj
+         EcoIDL1Python\StaticDebug\CEcoIDL1PythonFactory.obj
+         EcoIDL1Python\StaticDebug\CEcoIDL1PythonVisitor.obj
+         EcoIDL1Python.vcxproj -> D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1\AssemblyFiles\Windows\VS_v100\EcoIDL1Python\StaticDebug\4F8058F313B346A887D59E582C7799FC.lib
+       FinalizeBuildStatus:
+         Deleting file "EcoIDL1Python\StaticDebug\EcoIDL1Python.unsuccessfulbuild".
+         Touching "EcoIDL1Python\StaticDebug\EcoIDL1Python.lastbuildstate".
+     1>Done Building Project "D:\MyProject\FQW\Eco.Toolchain\Eco.Framework\Eco.IDL1.Python\AssemblyFiles\Windows\VS_v100\EcoIDL1Python.vcxproj" (rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:02.00
